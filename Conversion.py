@@ -7,20 +7,15 @@
 # Cheltenham Lateral Solutions = 1239798932720607
 # Cheltenham Township Residents = 335787510131917
 
-membersCSV = open("member.csv", 'r')
-postsCSV = open("post.csv", 'r')
-commentsCSV = open("comment.csv", 'r')
-likesCSV = open("like.csv", 'r')
-
-usersSQL = open("usersSQLInserts.sql", "a+")
-groupsSQL = open("groupsSQLInserts.sql", "a+")
-groupMembersSQL = open("groupMembersSQLInserts.sql", "a+")
-postsSQL = open("postsSQLInserts.sql", "a+") # Includes posts and comments
-reactionsSQL = open("reactionsSQLInserts.sql", "a+")
-
-def SQLCreation(table, CSVFile, SQLFile):
-    SQLFile.truncate()
+def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
+    CSVFile = open(CSVFilePath, "r")
     records = CSVFile.readlines()[1:]
+    CSVFile.close()
+    SQLFile = open(SQLFilePath, "a")
+
+    if truncate:
+        SQLFile.truncate()
+
     IDList = []
     index = 1
 
@@ -67,15 +62,17 @@ while True:
     if conversion.upper() == 'E':
         break
     elif conversion.upper() == 'A':
-        SQLCreation('Users', membersCSV, usersSQL)
-        SQLCreation('Posts', postsCSV, postsSQL)
-        SQLCreation('Reactions', likesCSV, reactionsSQL)
+        SQLCreation('Users', "member.csv", "usersInserts.sql", True)
+        SQLCreation('Posts', "post.csv", "postsInserts.sql", True)
+        SQLCreation('Comments', "comment.csv", "commentsInserts.sql", False)
+        SQLCreation('Reactions', "like.csv", "reactionsInserts.sql", True)
     elif conversion.upper() == 'U':
-        SQLCreation('Users', membersCSV, usersSQL)
+        SQLCreation('Users', "member.csv", "usersInserts.sql", True)
     elif conversion.upper() == 'P':
-        SQLCreation('Posts', postsCSV, postsSQL)
+        SQLCreation('Posts', "post.csv", "postsInserts.sql", True)
+        SQLCreation('Comments', "comment.csv", "commentsInserts.sql", False)
     elif conversion.upper() == 'R':
-        SQLCreation('Reactions', likesCSV, reactionsSQL)
+        SQLCreation('Reactions', "like.csv", "reactionsInserts.sql", True)
     else:
         print('Unrecognized input.')
 
