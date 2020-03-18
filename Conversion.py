@@ -9,10 +9,19 @@
 
 import re
 
+memberGroupObjects = []
+groups = [
+    {'groupName': 'Unofficial Cheltenham Township', 'groupID': '25160801076'},
+    {'groupName': 'Elkins Park Happenings!', 'groupID': '117291968282998'},
+    {'groupName': 'Free Speech Zone', 'groupID': '1443890352589739'},
+    {'groupName': 'Cheltenham Lateral Solutions', 'groupID': '1239798932720607'},
+    {'groupName': 'Cheltenham Township Residents', 'groupID': '335787510131917'}
+]
+
 linkObjects = []
 
 def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
-    global linkObjects
+    global memberGroupObjects, linkObjects
 
     CSVFile = open(CSVFilePath, "r")
     records = CSVFile.readlines()[1:]
@@ -20,6 +29,7 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
     SQLFile = open(SQLFilePath, "a")
 
     if truncate:
+        SQLFile.seek(0, 0)
         SQLFile.truncate()
 
     IDList = []
@@ -34,9 +44,12 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
         attributes = record.split(',')
 
         if CSVFilePath == 'member.csv':
+            groupID = attributes[0]
             memberID = attributes[1]
+            
             if memberID not in IDList:
                 IDList.append(memberID)
+
                 memberFullName = attributes[2]
                 memberNameParts = memberFullName.split(' ')
                 memberFirstName = memberNameParts[0]
@@ -50,6 +63,11 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
                     insertStatement = insertPreamble
                 else:
                     insertStatement += ", "
+
+            # For populating the GroupMembers table 
+            memberGroupObject = {'groupID': groupID, 'memberID': memberID}
+            if memberGroupObject not in memberGroupObjects:
+                memberGroupObjects.append(memberGroupObject)
 
         elif CSVFilePath == 'post.csv':
             # Note: Post text has apostrophes replaced with '{APOST}' and commas replaced with '{COMMA}'
@@ -77,8 +95,6 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
                 else:
                     insertStatement += ", "
 
-        # TODO: Figure out how a comment on a comment is identified
-        # Right, so
         # Any comment without an 'rid' (i.e. it is blank) is a top level comment
         # Any comment with an 'rid' is a comment on a comment, and the rid is the id of the user who is commenting on the comment
         # For all comments on comments, the commentID is the same
@@ -157,7 +173,95 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
 
     SQLFile.close()
 
+    return 0
+
+def GroupsSQLCreation():
+    global groups
+
+    SQLFile = open("groupsInserts.sql", 'a')
+    SQLFile.seek(0, 0)
+    SQLFile.truncate()
+
+    insertPreamble = "INSERT INTO Groups VALUES "
+    insertStatement = insertPreamble
+
+    for group in groups:
+        insertStatement += f"('{group['groupID']}', '{group['groupName']}'), "
+
+    insertStatement = insertStatement[:-2] # remove last appended comma and space if we did not end on a multiple of 20 
+    insertStatement += ';\n\n'
+    SQLFile.write(insertStatement)
+    SQLFile.close()
+
+    return 0
+
+def GroupMembersSQLCreation():
+    global memberGroupObjects
+
+    SQLFile = open("groupMembersInserts.sql", 'a')
+    SQLFile.seek(0, 0)
+    SQLFile.truncate()
+
+    insertPreamble = "INSERT INTO GroupMembers VALUES "
+    insertStatement = insertPreamble
+
+    index = 1
+    for memberGroupObject in memberGroupObjects:
+        insertStatement += f"('{memberGroupObject['groupID']}', '{memberGroupObject['memberID']}')"
+
+        if index % 100 == 0:
+            insertStatement += ";\n\n"
+            SQLFile.write(insertStatement)
+            insertStatement = insertPreamble
+        else:
+            insertStatement += ", "
+
+        index += 1
+
+    if ('\n' not in insertStatement):
+        insertStatement = insertStatement[:-2] # remove last appended comma and space if we did not end on a multiple of 20
+        insertStatement += ";\n\n"
+    if (insertStatement != insertPreamble):
+        SQLFile.write(insertStatement)
+
+    SQLFile.close()
+
+    return 0
+
 def LinksSQLCreation():
+    global linkObjects
+
+    SQLFile = open("linksInserts.sql", 'a')
+    SQLFile.seek(0, 0)
+    SQLFile.truncate()
+
+    insertPreamble = "INSERT INTO Links VALUES "
+    insertStatement = insertPreamble
+    
+    index = 1
+    for linkObject in linkObjects:
+        postID = linkObject['postID']
+        link = linkObject['link']
+
+        insertStatement += f'("{postID}", "{link}")'
+
+        if index % 100 == 0:
+            insertStatement += ";\n\n"
+            SQLFile.write(insertStatement)
+            insertStatement = insertPreamble
+        else:
+            insertStatement += ", "
+        
+        index += 1
+
+    if ('\n' not in insertStatement):
+        insertStatement = insertStatement[:-2] # remove last appended comma and space if we did not end on a multiple of 20
+        insertStatement += ";\n\n"
+    if (insertStatement != insertPreamble):
+        SQLFile.write(insertStatement) 
+
+    SQLFile.close()
+    
     return 0
 
 while True:
@@ -167,16 +271,20 @@ while True:
         break
     elif conversion.upper() == 'A':
         SQLCreation('Users', "member.csv", "usersInserts.sql", True)
+        GroupsSQLCreation()
+        GroupMembersSQLCreation()
         SQLCreation('Posts', "post.csv", "postsInserts.sql", True)
         SQLCreation('Posts', "comment.csv", "postsInserts.sql", False)
-        # LinksSQLCreation()
+        LinksSQLCreation()
         SQLCreation('Reactions', "like.csv", "reactionsInserts.sql", True)
     elif conversion.upper() == 'U':
         SQLCreation('Users', "member.csv", "usersInserts.sql", True)
+        GroupsSQLCreation()
+        GroupMembersSQLCreation()
     elif conversion.upper() == 'P':
         SQLCreation('Posts', "post.csv", "postsInserts.sql", True)
         SQLCreation('Posts', "comment.csv", "postsInserts.sql", False)
-        # LinksSQLCreation()
+        LinksSQLCreation()
     elif conversion.upper() == 'R':
         SQLCreation("like.csv", "reactionsInserts.sql", True)
     else:
