@@ -1,14 +1,18 @@
 import mysql.connector
+from functions import *
+from tables import *
 
 # Intialization
 
 mydb = mysql.connector.connect(
-  host="192.168.56.101",
+  host="localhost",
   user="remoteuser",
   passwd="password"
 )
 mycursor = mydb.cursor()
-mycursor.execute("CREATE DATABASE budgetBook")
+mycursor.execute("CREATE DATABASE IF NOT EXISTS budgetBook;")
+mycursor.execute("USE budgetBook;")
+createTables(mycursor)
 
 # Main Program Loop
 
