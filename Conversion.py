@@ -43,7 +43,7 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
     for record in records:
         attributes = record.split(',')
 
-        if CSVFilePath == 'member.csv':
+        if CSVFilePath == 'CSVs/member.csv':
             groupID = attributes[0]
             memberID = attributes[1]
             
@@ -69,7 +69,7 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
             if memberGroupObject not in memberGroupObjects:
                 memberGroupObjects.append(memberGroupObject)
 
-        elif CSVFilePath == 'post.csv':
+        elif CSVFilePath == 'CSVs/post.csv':
             # Note: Post text has apostrophes replaced with '{APOST}' and commas replaced with '{COMMA}'
 
             postID = attributes[1]
@@ -98,7 +98,7 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
         # Any comment without an 'rid' (i.e. it is blank) is a top level comment
         # Any comment with an 'rid' is a comment on a comment, and the rid is the id of the user who is commenting on the comment
         # For all comments on comments, the commentID is the same
-        elif CSVFilePath == 'comment.csv':
+        elif CSVFilePath == 'CSVs/comment.csv':
             # Note: Post text has apostrophes replaced with '{APOST}' and commas replaced with '{COMMA}'
 
             groupID = attributes[0]
@@ -136,7 +136,7 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
             else:
                 insertStatement += ", "
 
-        elif CSVFilePath == 'like.csv':
+        elif CSVFilePath == 'CSVs/like.csv':
             # Note: {Like, Love, Wow} = Like, {Angry} = Dislike for posts
             # If cid == x, then the reaction is a top level post, otherwise it's a reaction for that comment
 
@@ -178,11 +178,11 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
 def GroupsSQLCreation():
     global groups
 
-    SQLFile = open("groupsInserts.sql", 'a')
+    SQLFile = open("SQLInserts/groupsInserts.sql", 'a')
     SQLFile.seek(0, 0)
     SQLFile.truncate()
 
-    insertPreamble = "INSERT INTO Groups VALUES "
+    insertPreamble = "INSERT INTO GroupInfo VALUES "
     insertStatement = insertPreamble
 
     for group in groups:
@@ -198,7 +198,7 @@ def GroupsSQLCreation():
 def GroupMembersSQLCreation():
     global memberGroupObjects
 
-    SQLFile = open("groupMembersInserts.sql", 'a')
+    SQLFile = open("SQLInserts/groupMembersInserts.sql", 'a')
     SQLFile.seek(0, 0)
     SQLFile.truncate()
 
@@ -231,7 +231,7 @@ def GroupMembersSQLCreation():
 def LinksSQLCreation():
     global linkObjects
 
-    SQLFile = open("linksInserts.sql", 'a')
+    SQLFile = open("SQLInserts/linksInserts.sql", 'a')
     SQLFile.seek(0, 0)
     SQLFile.truncate()
 
@@ -270,23 +270,23 @@ while True:
     if conversion.upper() == 'E':
         break
     elif conversion.upper() == 'A':
-        SQLCreation('Users', "member.csv", "usersInserts.sql", True)
+        SQLCreation('Users', "CSVs/member.csv", "SQLInserts/usersInserts.sql", True)
         GroupsSQLCreation()
         GroupMembersSQLCreation()
-        SQLCreation('Posts', "post.csv", "postsInserts.sql", True)
-        SQLCreation('Posts', "comment.csv", "postsInserts.sql", False)
+        SQLCreation('Posts', "CSVs/post.csv", "SQLInserts/postsInserts.sql", True)
+        SQLCreation('Posts', "CSVs/comment.csv", "SQLInserts/postsInserts.sql", False)
         LinksSQLCreation()
-        SQLCreation('Reactions', "like.csv", "reactionsInserts.sql", True)
+        SQLCreation('Reactions', "CSVs/like.csv", "SQLInserts/reactionsInserts.sql", True)
     elif conversion.upper() == 'U':
-        SQLCreation('Users', "member.csv", "usersInserts.sql", True)
+        SQLCreation('Users', "CSVs/member.csv", "SQLInserts/usersInserts.sql", True)
         GroupsSQLCreation()
         GroupMembersSQLCreation()
     elif conversion.upper() == 'P':
-        SQLCreation('Posts', "post.csv", "postsInserts.sql", True)
-        SQLCreation('Posts', "comment.csv", "postsInserts.sql", False)
+        SQLCreation('Posts', "CSVs/post.csv", "SQLInserts/postsInserts.sql", True)
+        SQLCreation('Posts', "CSVs/comment.csv", "SQLInserts/postsInserts.sql", False)
         LinksSQLCreation()
     elif conversion.upper() == 'R':
-        SQLCreation("like.csv", "reactionsInserts.sql", True)
+        SQLCreation("CSVs/like.csv", "SQLInserts/reactionsInserts.sql", True)
     else:
         print('Unrecognized input.')
 
