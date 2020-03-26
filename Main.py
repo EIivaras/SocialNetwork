@@ -16,9 +16,9 @@ createTables(mycursor)
 
 # Main Program Loop
 
-loggedIn = False
+loggedIn = True
 
-def login():
+def login(): # Can we make this return the userID? We will need it as a variable in other areas
     return 0
 
 def register():
@@ -36,12 +36,18 @@ else:
 
 if loggedIn:
     while True:
-        action = input("Please choose an action: p = post, r = react, e = exit")
+        action = input("Please choose an action: p = post, r = react, e = exit: ")
 
         if action.upper() == 'E':
             break
-        # elif action.upper() == 'P':
-            # TODO
-        # elif action.upper() == 'R':
-            # TODO
+        elif action.upper() == 'P':
+            UserID = "pd1" #I made a user in my local DB with this id for testing
+            post(UserID, mycursor, mydb) #Can use this to test/experiment with posting
+        #elif action.upper() == 'R':
+
         # TODO: Add all commands, possibly a hierarchy for some
+        else:
+            break
+
+mycursor.close()
+mydb.close()
