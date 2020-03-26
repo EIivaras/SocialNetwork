@@ -24,7 +24,7 @@ def login():
 def register():
     return 0
 
-loginOrRegister = input("Please login (using your userID and password) or register: l = login, r = register")
+loginOrRegister = input("Please login (using your userID and password) or register: l = login, r = register: ")
 if loginOrRegister.upper() == 'L':
     login()
 elif loginOrRegister.upper() == 'R':
