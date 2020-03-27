@@ -32,4 +32,5 @@ def read(PostID, mycursor): #Working!
     mycursor.execute(q, v)
     Content = mycursor.fetchall()
     print(Content[0][0])
-    return 0;
+    
+    return 0
