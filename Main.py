@@ -80,9 +80,9 @@ if successfullyConnected:
                     print("Friend Menu:\nf = add a friend\nu = unfollow a friend\nb = back\n")
                     action = input("What would you like to do?")
                     if action.upper() == 'F':
-                        friend()
+                        friend(UserID, mycursor, mydb)
                     elif action.upper() == 'U':
-                        unfollow()
+                        unfollow(UserID, mycursor, mydb)
                     elif action.upper() == 'B':
                         break
                     else:

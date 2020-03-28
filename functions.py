@@ -1,3 +1,6 @@
+import re
+from datetime import date
+
 def post(UserID, mycursor, mydb):
     # Get and check the content for the post
     Content = input("What do you want to post?\n")
@@ -107,7 +110,8 @@ def register(mycursor, mydb):
     return 0
 
 
-def friend(UserID, FriendID, mycursor, mydb):
+def friend(UserID, mycursor, mydb):
+    FriendID = input("Who do you want to become friends with? Their UserID: ")
     q = "INSERT INTO Friends (UserID, FriendID) VALUES (%s, %s);"
     v = (UserID, FriendID)
     mycursor.execute(q, v)
@@ -116,13 +120,16 @@ def friend(UserID, FriendID, mycursor, mydb):
     q = "INSERT INTO FollowedUsers (FriendID, UserID) VALUES (%s, %s);"
     mycursor.execute(q, v)
     mydb.commit()
-
     print("You and "+FriendID+" are friends now!")
-
     return 0
 
 
-def unfollow():
+def unfollow(UserID, mycursor, mydb):
+    FriendID = input("Which friend do you want to unfollow? Thier UserID: ")
+    q = "DELETE FROM FollowedUsers WHERE UserID = \"%s\" AND FriendID = \"%s\";"
+    v = (UserID, FriendID)
+    mycursor.execute(q, v)
+    mydb.commit()
     return 0
 
 
