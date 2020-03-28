@@ -103,8 +103,8 @@ def register(mycursor, mydb):
                     print("Not a valid date.")
             dateJoined = str(date.today())
             #print(dateJoined)
-            q = "INSERT INTO Users (userID, firstName, lastName, dateJoined, birthDate) VALUES (%s, %s, %s, %s, %s);"
-            v = (userID, firstName, lastName, dateJoined, birthDate)
+            q = "INSERT INTO Users (userID, firstName, lastName, birthDate, dateJoined) VALUES (%s, %s, %s, %s, %s);"
+            v = (userID, firstName, lastName, birthDate, dateJoined)
 
             try:
                 mycursor.execute(q, v)
