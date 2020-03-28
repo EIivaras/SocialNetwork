@@ -20,14 +20,19 @@ def post(UserID, mycursor, mydb):
     if len(GroupID) == 0:
         GroupID = None
 
+    # create a PostID
+    mycursor.execute("SELECT * FROM Meta;")
+    PostID = mycursor.fetchall()[0][0]
+    mycursor.execute("UPDATE Meta SET NextPostID = NextPostID + 1;")
+
     # Post by adding all the information to the database
-    q = "INSERT INTO Posts (UserID, ParentPost, TopicID, GroupID, Content) VALUES (%s, %s, %s, %s, %s);"
-    v = (UserID, ParentPost, TopicID, GroupID, Content)
+    q = "INSERT INTO Posts (PostID, UserID, ParentPost, TopicID, GroupID, Content) VALUES (%s, %s, %s, %s, %s, %s);"
+    v = (PostID, UserID, ParentPost, TopicID, GroupID, Content)
     mycursor.execute(q, v)
     mydb.commit()
 
     # Now we need to add to the unread table
-    PostID = mycursor.lastrowid
+
     # TODO: First add it for everyone that follows this userID
 
     # TODO: Then add for everyone in the same groups
@@ -112,7 +117,7 @@ def register(mycursor, mydb):
 
 def friend(UserID, mycursor, mydb):
     FriendID = input("Who do you want to become friends with? Their UserID: ")
-    if not checkID(FriendID, mycursor):
+    if checkID(FriendID, mycursor) == 0:
         print("There is no user with that UserID\n")
         return -1
 
@@ -135,7 +140,7 @@ def friend(UserID, mycursor, mydb):
 
 def unfollow(UserID, mycursor, mydb):
     FriendID = input("Which friend do you want to unfollow? Their UserID: ")
-    if not checkID(FriendID, mycursor):
+    if checkID(FriendID, mycursor) == 0:
         print("There is no user with that UserID\n")
         return -1
 
@@ -153,7 +158,7 @@ def unfollow(UserID, mycursor, mydb):
 
 def follow(UserID, mycursor, mydb):
     FriendID = input("Which friend do you want to follow? Their UserID: ")
-    if not checkID(FriendID, mycursor):
+    if checkID(FriendID, mycursor) == 0:
         print("There is no user with that UserID\n")
         return -1
 

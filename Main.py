@@ -30,6 +30,13 @@ if successfullyConnected:
     mycursor.execute("USE budgetBook;")
     createTables(mycursor)
 
+    # Initialize PostID
+    mycursor.execute("SELECT * FROM Meta;")
+    result = mycursor.fetchall()
+    if len(result) == 0:
+        mycursor.execute("INSERT INTO Meta VALUE (0)")
+        mydb.commit()
+
     # Main Program Loop
 
     loggedIn = False
