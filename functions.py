@@ -29,18 +29,21 @@ def post(UserID, mycursor, mydb):
     q = "INSERT INTO Posts (PostID, UserID, ParentPost, TopicID, GroupID, Content) VALUES (%s, %s, %s, %s, %s, %s);"
     v = (PostID, UserID, ParentPost, TopicID, GroupID, Content)
     mycursor.execute(q, v)
-    mydb.commit()
 
     # Now we need to add to the unread table
-
     # TODO: First add it for everyone that follows this userID
+    q = "INSERT INTO ReadStatus (UserID, PostID) SELECT UserID, %s FROM (SELECT UserID FROM FollowedUsers WHERE FollowedID = %s) AS Temp;"
+    v = (PostID, UserID)
+    mycursor.execute(q, v)
 
-    # TODO: Then add for everyone in the same groups
+    # TODO: Then add for everyone in the same groups (minus people that already got it b/c they followed the person)
 
+
+    mydb.commit()
     return 0
 
 
-def read(PostID, mycursor): #Working!
+def read(PostID, mycursor):
     q = "SELECT Content FROM Posts WHERE PostID = %s;"
     v = (str(PostID),)
     mycursor.execute(q, v)
@@ -50,12 +53,13 @@ def read(PostID, mycursor): #Working!
     return 0
 
 
-def readUnreadPosts(): # this is unRED not
+def readUnreadPosts():
     return 0
 
 
 def readComments():
     return 0
+
 
 def login(mycursor):
     userID = input("Please input your userID: ")
@@ -98,7 +102,7 @@ def register(mycursor, mydb):
                 else:
                     print("Not a valid date.")
             dateJoined = str(date.today())
-            print(dateJoined)
+            #print(dateJoined)
             q = "INSERT INTO Users (userID, firstName, lastName, dateJoined, birthDate) VALUES (%s, %s, %s, %s, %s);"
             v = (userID, firstName, lastName, dateJoined, birthDate)
 
@@ -117,7 +121,7 @@ def register(mycursor, mydb):
 
 def friend(UserID, mycursor, mydb):
     FriendID = input("Who do you want to become friends with? Their UserID: ")
-    if checkID(FriendID, mycursor) == 0:
+    if not checkID(FriendID, mycursor):
         print("There is no user with that UserID\n")
         return -1
 
@@ -134,43 +138,49 @@ def friend(UserID, mycursor, mydb):
         print("You and "+FriendID+" are friends now!\n")
         return 0
     else:
-        print("You are already friends with this person.")
+        print("You are already friends with this person.\n")
         return -2
 
 
 def unfollow(UserID, mycursor, mydb):
     FriendID = input("Which friend do you want to unfollow? Their UserID: ")
-    if checkID(FriendID, mycursor) == 0:
+    if not checkID(FriendID, mycursor):
         print("There is no user with that UserID\n")
         return -1
 
     if not friendCheck(UserID, FriendID, mycursor):
-        print("You must be friends with someone to follow/unfollow them.")
+        print("You must be friends with someone to follow/unfollow them.\n")
         return -2
     else:
-        q = "DELETE FROM FollowedUsers WHERE UserID = \"%s\" AND FollowedID = \"%s\";"
-        v = (UserID, FriendID)
-        mycursor.execute(q, v)
-        mydb.commit()
-        print("You will no longer see content from "+FriendID+"\n")
+        if followCheck(UserID, FriendID, mycursor) == 0:
+            print("You have already unfollowed this person.\n")
+        else:
+            q = "DELETE FROM FollowedUsers WHERE UserID = %s AND FollowedID = %s;"
+            v = (UserID, FriendID)
+            mycursor.execute(q, v)
+            mydb.commit()
+            print("You will no longer see content from "+FriendID+"\n")
         return 0
 
 
 def follow(UserID, mycursor, mydb):
     FriendID = input("Which friend do you want to follow? Their UserID: ")
-    if checkID(FriendID, mycursor) == 0:
+    if not checkID(FriendID, mycursor):
         print("There is no user with that UserID\n")
         return -1
 
     if not friendCheck(UserID, FriendID, mycursor):
-        print("You must be friends with someone to follow/unfollow them.")
+        print("You must be friends with someone to follow/unfollow them.\n")
         return -2
     else:
-        q = "INSERT INTO FollowedUsers VALUES (%s, %s);"
-        v = (UserID, FriendID)
-        mycursor.execute(q, v)
-        mydb.commit()
-        print("You will no longer see content from "+FriendID+"\n")
+        if followCheck(UserID, FriendID, mycursor) == 1:
+            print("You have already followed this person.\n")
+        else:
+            q = "INSERT INTO FollowedUsers VALUES (%s, %s);"
+            v = (UserID, FriendID)
+            mycursor.execute(q, v)
+            mydb.commit()
+            print("You will now see content from "+FriendID+"\n")
         return 0
 
 
@@ -186,17 +196,24 @@ def react():
 
 # Check if a user ID is valid
 def checkID(UserID, mycursor):
-    q = "SELECT * FROM Users WHERE UserID = \"%s\" ;"
-    v = (str(UserID),)
+    q = "SELECT UserID FROM Users WHERE UserID = %s;"
+    v = (UserID,)
     mycursor.execute(q, v)
     result = mycursor.fetchall()
-    print(result)
     return len(result)
 
 # Checks if two IDs are friends
 def friendCheck(UserID, FriendID, mycursor):
-    q = " SELECT * FROM Friends WHERE (UserID = \"%s\" AND FriendID = \"%s\") OR (UserID = \"%s\" AND FriendID = \"%s\");"
+    q = "SELECT UserID FROM Friends WHERE (UserID = %s AND FriendID = %s) OR (UserID = %s AND FriendID = %s);"
     v = (UserID, FriendID, FriendID, UserID)
+    mycursor.execute(q, v)
+    result = mycursor.fetchall()
+    return len(result)
+
+# 0 if not following, 1 if following
+def followCheck(UserID, FriendID, mycursor):
+    q = "SELECT UserID FROM FollowedUsers WHERE UserID = %s AND FollowedID = %s;"
+    v = (UserID, FriendID)
     mycursor.execute(q, v)
     result = mycursor.fetchall()
     return len(result)

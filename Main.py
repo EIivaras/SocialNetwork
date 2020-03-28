@@ -30,7 +30,7 @@ if successfullyConnected:
     mycursor.execute("USE budgetBook;")
     createTables(mycursor)
 
-    # Initialize PostID
+    # Initialize PostID if needed
     mycursor.execute("SELECT * FROM Meta;")
     result = mycursor.fetchall()
     if len(result) == 0:
