@@ -54,10 +54,17 @@ if successfullyConnected:
     else:
         mycursor.execute("USE budgetBook")
 
+    # Initialize PostID
+    mycursor.execute("SELECT * FROM Meta;")
+    result = mycursor.fetchall()
+    if len(result) == 0:
+        mycursor.execute("INSERT INTO Meta VALUE (0)")
+        mydb.commit()
+
     # Main Program Loop
 
     loggedIn = False
-    userID = ""
+    UserID = ""
 
     while not loggedIn:
         loginOrRegister = input("Please login (using your userID), register, or exit: l = login, r = register, e = exit: ")
@@ -65,7 +72,7 @@ if successfullyConnected:
             userObject = login(mycursor)
             if (userObject["success"]):
                 loggedIn = True
-                userID = userObject["userID"]
+                UserID = userObject["userID"]
                 break
         elif loginOrRegister.upper() == 'R':
             register(mycursor, mydb)
@@ -79,7 +86,7 @@ if successfullyConnected:
 
     if loggedIn:
         while True:
-            action = input("Please choose an menu: p = post menu, f = friend menu, g = group menu, e = exit: ")
+            action = input("Please choose an menu: p = post menu, f = friend menu, g = group menu, e = exit/logout: ")
 
             if action.upper() == 'E':
                 break
@@ -101,12 +108,14 @@ if successfullyConnected:
 
             elif action.upper() == 'F':
                 while True:
-                    print("Friend Menu:\nf = add a friend\nu = unfollow a friend\nb = back\n")
-                    action = input("What would you like to do?")
+                    print("Friend Menu:\nf = add a friend\nu = unfollow a friend\nr = refollow a friend\nb = back\n")
+                    action = input("What would you like to do? ")
                     if action.upper() == 'F':
-                        friend()
+                        friend(UserID, mycursor, mydb)
                     elif action.upper() == 'U':
-                        unfollow()
+                        unfollow(UserID, mycursor, mydb)
+                    elif action.upper() == 'R':
+                        follow(UserID, mycursor, mydb)
                     elif action.upper() == 'B':
                         break
                     else:
