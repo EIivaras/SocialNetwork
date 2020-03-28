@@ -1,5 +1,6 @@
 import mysql.connector
 import re
+from os import listdir
 from datetime import date
 from functions import *
 from tables import *
@@ -26,9 +27,32 @@ else:
 if successfullyConnected:
 
     mycursor = mydb.cursor()
-    mycursor.execute("CREATE DATABASE IF NOT EXISTS budgetBook;")
-    mycursor.execute("USE budgetBook;")
-    createTables(mycursor)
+    mycursor.execute("SHOW DATABASES LIKE 'budgetBook';")
+    dbExists = mycursor.fetchall()
+
+    if not dbExists:
+        print("Creating database...")
+        mycursor.execute("CREATE DATABASE budgetBook;")
+        mycursor.execute("USE budgetBook;")
+        createTables(mycursor)
+        mycursor.execute('SET FOREIGN_KEY_CHECKS=0')
+        SQLInsertFilePaths = listdir('./SQLInserts')
+        for filePath in SQLInsertFilePaths:
+            print(f"Inserting data for {filePath}...")
+            file = open(f'./SQLInserts/{filePath}', 'r')
+            statements = file.readlines()
+            try:
+                for statement in statements:
+                    mycursor.execute(statement)
+            except mysql.connector.Error as er:
+                pass
+            mydb.commit()
+            file.close()
+        mycursor.execute('SET FOREIGN_KEY_CHECKS=1')
+        print("Finished.")
+
+    else:
+        mycursor.execute("USE budgetBook")
 
     # Main Program Loop
 
@@ -65,7 +89,7 @@ if successfullyConnected:
                     print("Post Menu:\np = make a post\nr = reply to a post\nu = read unread posts\nb = back")
                     action = input("What would you like to do? ")
                     if action.upper() == 'P':
-                        post(UserID, mycursor, mydb)
+                        post(userID, mycursor, mydb)
                     elif action.upper() == 'R':
                         reply()
                     elif action.upper() == 'U':

@@ -36,6 +36,8 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
     index = 1
 
     insertPreamble = f"INSERT INTO {table} VALUES "
+    if table == 'Users':
+        insertPreamble = f"INSERT INTO {table} (UserID, FirstName, LastName, BirthDate) VALUES "
     insertStatement = insertPreamble
 
     reactionID = 1
@@ -55,14 +57,16 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
                 memberFirstName = memberNameParts[0]
                 memberLastName = memberNameParts[len(memberNameParts) - 1]
 
-                insertStatement += f'("{memberID}","{memberFirstName}","{memberLastName}","","")'
+                insertStatement += f'("{memberID}","{memberFirstName}","{memberLastName}",NULL)'
 
                 if index % 50 == 0:
-                    insertStatement += ";\n\n"
+                    insertStatement += ";\n"
                     SQLFile.write(insertStatement)
                     insertStatement = insertPreamble
                 else:
                     insertStatement += ", "
+
+                index += 1
 
             # For populating the GroupMembers table 
             memberGroupObject = {'groupID': groupID, 'memberID': memberID}
@@ -81,19 +85,27 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
                 postText = attributes[7]
                 postText = postText.replace('\n', '')
 
+                if len(postText) > 1997:
+                    postText = f"{postText[:1997]}..."
+
                 # Extract Links and create inserts
                 links = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', postText)
+                linkList = []
                 for link in links:
-                    linkObjects.append({'postID':postID, 'link':link})
+                    if link not in linkList:
+                        linkList.append(link)
+                        linkObjects.append({'postID':postID, 'link':link})
 
-                insertStatement += f'("{postID}","{timeStamp}","{userID}","{postID}","","{groupID}","{postText}")'
+                insertStatement += f'("{postID}","{timeStamp}","{postText}","{userID}","{groupID}","","")'
 
                 if index % 50 == 0:
-                    insertStatement += ";\n\n"
+                    insertStatement += ";\n"
                     SQLFile.write(insertStatement)
                     insertStatement = insertPreamble
                 else:
                     insertStatement += ", "
+
+                index += 1
 
         # Any comment without an 'rid' (i.e. it is blank) is a top level comment
         # Any comment with an 'rid' is a comment on a comment, and the rid is the id of the user who is commenting on the comment
@@ -107,67 +119,84 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
             commentText = attributes[7]
             commentText = commentText.replace('\n', '')
 
+            if len(commentText) > 1997:
+                commentText = f"{commentText[:1997]}..."
+
             commentID=""
             parentPostID=""
             userID=""
+
+            newIDNeeded = False
             if responderID:
                 # This is a comment on a comment
                 commentID = commentUniqueID # Since the comment ID is the same for all sub-comments, use a unique one
                 commentUniqueID += 1
                 parentPostID = attributes[2] # Parent post ID is the top-level comment ID
                 userID = responderID # The user ID is the ID of the responder to the top-level comment
+                newIDNeeded = True
             else:
                 # This is not a comment on a comment
                 commentID = attributes[2] # The comment ID is just the comment ID
+                IDList.append(commentID)
                 parentPostID = attributes[1] # Parent post ID is the post itself
                 userID = attributes[4] # User ID is the original commenter ID
 
-            # Extract Links and create inserts
-            links = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', commentText)
-            for link in links:
-                linkObjects.append({'postID':commentID, 'link':link})
+            if newIDNeeded or commentID not in IDList:
+                # Extract Links and create inserts
+                links = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', commentText)
+                linkList = []
+                for link in links:
+                    if link not in linkList:
+                        linkList.append(link)
+                        linkObjects.append({'postID':commentID, 'link':link})
 
-            insertStatement += f'("{commentID}","{timeStamp}","{userID}","{parentPostID}","","{groupID}","{commentText}")'
+                insertStatement += f'("{commentID}","{timeStamp}","{commentText}","{userID}","{groupID}","","{parentPostID}")'
 
-            if index % 50 == 0:
-                insertStatement += ";\n\n"
-                SQLFile.write(insertStatement)
-                insertStatement = insertPreamble
-            else:
-                insertStatement += ", "
+                if index % 50 == 0:
+                    insertStatement += ";\n"
+                    SQLFile.write(insertStatement)
+                    insertStatement = insertPreamble
+                else:
+                    insertStatement += ", "
+
+                index += 1
 
         elif CSVFilePath == 'CSVs/like.csv':
             # Note: {Like, Love, Wow} = Like, {Angry} = Dislike for posts
             # If cid == x, then the reaction is a top level post, otherwise it's a reaction for that comment
 
-            commentID = attributes[2]
-            postID = ""
-            if commentID == 'x':
-                postID = attributes[1]
-            else:
-                postID = commentID
             response = attributes[3]
-            reaction = True
-            if response == 'Angry':
-                reaction = False
-            userID = attributes[4]
 
-            insertStatement += f'("{postID}", "{userID}", "{reaction}")'
+            if response == "LIKE" or response == "LIKES" or response == "ANGRY":
+                reaction = True
+                if response == 'ANGRY':
+                    reaction = False
 
-            if index % 100 == 0:
-                insertStatement += ";\n\n"
-                SQLFile.write(insertStatement)
-                insertStatement = insertPreamble
-            else:
-                insertStatement += ", "
+                commentID = attributes[2]
+                postID = ""
+                if commentID == 'x':
+                    postID = attributes[1]
+                else:
+                    postID = commentID
 
-            reactionID += 1
+                userID = attributes[4]
 
-        index += 1
+                insertStatement += f'("{postID}", "{userID}", {reaction})'
+
+                if index % 100 == 0:
+                    insertStatement += ";\n"
+                    SQLFile.write(insertStatement)
+                    insertStatement = insertPreamble
+                else:
+                    insertStatement += ", "
+
+                reactionID += 1
+
+                index += 1
     
     if ('\n' not in insertStatement):
         insertStatement = insertStatement[:-2] # remove last appended comma and space if we did not end on a multiple of 20
-        insertStatement += ";\n\n"
+        insertStatement += ";\n"
     if (insertStatement != insertPreamble):
         SQLFile.write(insertStatement)
 
@@ -189,7 +218,7 @@ def GroupsSQLCreation():
         insertStatement += f"('{group['groupID']}', '{group['groupName']}'), "
 
     insertStatement = insertStatement[:-2] # remove last appended comma and space if we did not end on a multiple of 20 
-    insertStatement += ';\n\n'
+    insertStatement += ';\n'
     SQLFile.write(insertStatement)
     SQLFile.close()
 
@@ -210,7 +239,7 @@ def GroupMembersSQLCreation():
         insertStatement += f"('{memberGroupObject['groupID']}', '{memberGroupObject['memberID']}')"
 
         if index % 100 == 0:
-            insertStatement += ";\n\n"
+            insertStatement += ";\n"
             SQLFile.write(insertStatement)
             insertStatement = insertPreamble
         else:
@@ -220,7 +249,7 @@ def GroupMembersSQLCreation():
 
     if ('\n' not in insertStatement):
         insertStatement = insertStatement[:-2] # remove last appended comma and space if we did not end on a multiple of 20
-        insertStatement += ";\n\n"
+        insertStatement += ";\n"
     if (insertStatement != insertPreamble):
         SQLFile.write(insertStatement)
 
@@ -235,7 +264,7 @@ def LinksSQLCreation():
     SQLFile.seek(0, 0)
     SQLFile.truncate()
 
-    insertPreamble = "INSERT INTO Links VALUES "
+    insertPreamble = "INSERT INTO Links (PostID, Path) VALUES "
     insertStatement = insertPreamble
     
     index = 1
@@ -246,7 +275,7 @@ def LinksSQLCreation():
         insertStatement += f'("{postID}", "{link}")'
 
         if index % 100 == 0:
-            insertStatement += ";\n\n"
+            insertStatement += ";\n"
             SQLFile.write(insertStatement)
             insertStatement = insertPreamble
         else:
@@ -256,7 +285,7 @@ def LinksSQLCreation():
 
     if ('\n' not in insertStatement):
         insertStatement = insertStatement[:-2] # remove last appended comma and space if we did not end on a multiple of 20
-        insertStatement += ";\n\n"
+        insertStatement += ";\n"
     if (insertStatement != insertPreamble):
         SQLFile.write(insertStatement) 
 
@@ -286,7 +315,7 @@ while True:
         SQLCreation('Posts', "CSVs/comment.csv", "SQLInserts/postsInserts.sql", False)
         LinksSQLCreation()
     elif conversion.upper() == 'R':
-        SQLCreation("CSVs/like.csv", "SQLInserts/reactionsInserts.sql", True)
+        SQLCreation('Reactions', "CSVs/like.csv", "SQLInserts/reactionsInserts.sql", True)
     else:
         print('Unrecognized input.')
 
