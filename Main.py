@@ -35,62 +35,6 @@ if successfullyConnected:
     loggedIn = False
     userID = ""
 
-    def login(mycursor): # Can we make this return the userID? We will need it as a variable in other areas
-        userID = input("Please input your userID: ")
-        q = "SELECT UserID FROM Users WHERE userID = %s"
-        v = (str(userID),)
-        mycursor.execute(q, v)
-        result = mycursor.fetchall()
-        if result:
-            print(f"Welcome back, {userID}.\n")
-            return {"userID": userID, "success": True}
-        else:
-            print("UserID does not exist. Please register at the prompt.")
-            return {"userID": userID, "success": False}
-
-    def register(mycursor, mydb):
-        registered = False
-        while not registered:
-            userID = input("Please input your wanted userID or type 'e' to exit: ")
-
-            if userID.upper() == 'E':
-                break
-
-            q = "SELECT UserID FROM Users WHERE userID = %s"
-            v = (str(userID),)
-            mycursor.execute(q, v)
-            result = mycursor.fetchall()
-            if not result:
-                print("Requested UserID is free to use.")
-                firstName = input("Please input your first name (leave blank if you prefer not to): ")
-                lastName = input("Please input your last name (leave blank if you prefer not to): ")
-                dateOkay = False
-                birthDate = ""
-                while not dateOkay:
-                    birthDate = input("Please input your date of birth in the format YYYY-MM-DD (leave blank if you prefer not to): ")
-                    if birthDate == "":
-                        break
-                    if re.match("(19[0-9][0-9]|20[01][0-9]|2020)-(0[1-9]|1[12])-([0-2][0-9]|3[01])", birthDate):
-                        dateOkay = True
-                    else:
-                        print("Not a valid date.")
-                dateJoined = str(date.today())
-                print(dateJoined)
-                q = "INSERT INTO Users (userID, firstName, lastName, dateJoined, birthDate) VALUES (%s, %s, %s, %s, %s);"
-                v = (userID, firstName, lastName, dateJoined, birthDate)
-                
-                try:
-                    mycursor.execute(q, v)
-                    mydb.commit()
-                except mysql.connector.Error as er:
-                    print("Error while attempting to register: {}".format(er))
-                else:
-                    print("Successfully registered. Please login at the prompt.")
-                    registered = True
-            else:
-                print("UserID already in use.")
-        return 0
-
     while not loggedIn:
         loginOrRegister = input("Please login (using your userID), register, or exit: l = login, r = register, e = exit: ")
         if loginOrRegister.upper() == 'L':
@@ -111,18 +55,57 @@ if successfullyConnected:
 
     if loggedIn:
         while True:
-            action = input("Please choose an action: p = post, r = react, e = exit: ")
+            action = input("Please choose an menu: p = post menu, f = friend menu, g = group menu, e = exit: ")
 
             if action.upper() == 'E':
                 break
+
             elif action.upper() == 'P':
-                UserID = "pd1" #I made a user in my local DB with this id for testing
-                post(UserID, mycursor, mydb) #Can use this to test/experiment with posting
-            #elif action.upper() == 'R':
+                while True:
+                    print("Post Menu:\np = make a post\nr = reply to a post\nu = read unread posts\nb = back")
+                    action = input("What would you like to do? ")
+                    if action.upper() == 'P':
+                        post(UserID, mycursor, mydb)
+                    elif action.upper() == 'R':
+                        reply()
+                    elif action.upper() == 'U':
+                        readUnreadPosts() # will go to the read specific post, reply, read comments, and react options from here
+                    elif action.upper() == 'B':
+                        break
+                    else:
+                        print("That is not one of the options.")
+
+            elif action.upper() == 'F':
+                while True:
+                    print("Friend Menu:\nf = add a friend\nu = unfollow a friend\nb = back\n")
+                    action = input("What would you like to do?")
+                    if action.upper() == 'F':
+                        friend()
+                    elif action.upper() == 'U':
+                        unfollow()
+                    elif action.upper() == 'B':
+                        break
+                    else:
+                        print("That is not one of the options.")
+
+            elif action.upper() == 'G':
+                while True:
+                    print("Group Menu:\nj = join group\nc = create group\nb = back\n")
+                    action = input("What would you like to do?")
+                    if action.upper() == 'J':
+                        joinGroup()
+                    elif action.upper() == 'C':
+                        createGroup()
+                    elif action.upper() == 'B':
+                        break
+                    else:
+                        print("That is not one of the options.")
 
             # TODO: Add all commands, possibly a hierarchy for some
             else:
-                break
+                print("That is not one of the options.")
+
+        print("Goodbye!")
 
     mycursor.close()
     mydb.close()
