@@ -129,5 +129,5 @@ def unfollow():
 def reply():
     return 0
 
-def react();
+def react():
     return 0
