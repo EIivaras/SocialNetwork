@@ -1,5 +1,7 @@
 import mysql.connector
+# import re
 from os import listdir
+# from datetime import date
 import functions as api
 from tables import createTables
 
@@ -8,7 +10,8 @@ from tables import createTables
 dbHost = input("Please input your host address: ")
 dbUser = input("Please input your db user: ")
 dbPassword = input("Please input your db password: ")
-if dbHost == "" and dbUser == "" and dbPassword == "":
+
+if dbHost == "" and dbUser == "" and dbPassword == "":  # This if case was for ease of testing can be deleted after
     dbHost = "Localhost"
     dbUser = "remoteuser"
     dbPassword = "password"
@@ -112,6 +115,7 @@ if successfullyConnected:
                                     break
                                 numReplies = input("How many replies do you want to see? Number: ")
                                 api.readReplies(ParentPost, numReplies, UserID, mycursor, mydb)
+
                     elif action.upper() == 'T':  # this whole case should be deleted, it is just for testing
                         PostID = input("Which post do you want to read? (b = go back) PostID: ")
                         api.read(PostID, mycursor)
@@ -140,11 +144,11 @@ if successfullyConnected:
             elif action.upper() == 'G':
                 while True:
                     print("Group Menu:\nj = join group\nc = create group\nb = back\n")
-                    action = input("What would you like to do? ")
+                    action = input("What would you like to do?")
                     if action.upper() == 'J':
-                        api.joinGroup(UserID, mycursor, mydb)
+                        api.joinGroup()
                     elif action.upper() == 'C':
-                        api.createGroup(UserID, mycursor, mydb)
+                        api.createGroup()
                     elif action.upper() == 'B':
                         break
                     else:
