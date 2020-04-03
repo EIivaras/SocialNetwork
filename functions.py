@@ -1,4 +1,6 @@
+import mysql.connector
 import re
+import random
 from datetime import date
 import mysql.connector
 
@@ -79,7 +81,6 @@ def read(PostID, mycursor):
 
 
 def listUnreadPosts(UserID, numPosts, mycursor, mydb):
-    # still have to sort by most popular in terms of upvotes / downvotes
     q = "SELECT PostID, firstName, lastName, GroupName, SUBSTRING_INDEX(Content, " ", 10) FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) WHERE PostID IN (SELECT PostID FROM ReadStatus WHERE UserID = %s AND HasRead = FALSE) LIMIT %s;"
     v = (UserID, numPosts)
     mycursor.execute(q, v)
@@ -88,8 +89,7 @@ def listUnreadPosts(UserID, numPosts, mycursor, mydb):
     return 0
 
 
-def readReplies(ParentPost, numReplies, UserID, mycursor, mydb):
-
+def readComments():
     return 0
 
 
@@ -223,6 +223,103 @@ def reply():
 def react():
     return 0
 
+def createGroup(userID, mycursor, mydb):  
+    groupID = ''
+    goodGroupName = False
+    while not goodGroupName:
+        groupName = input("Please specify a valid group name (3 chars min, 250 chars max) or press 'b' to go back: ")
+        if groupName.upper() == 'B':
+            return
+        elif len(groupName) > 250:
+            print('Group name too long.')
+        elif len(groupName) < 3:
+            print('Group name too short.')
+        else:
+            q = "SELECT GroupName FROM GroupInfo WHERE GroupName = %s"
+            v = (groupName,)
+            mycursor.execute(q, v)
+            result = mycursor.fetchall()
+            if result:
+                print('Specified group name is already in use. Please choose another.')
+            else:
+                print('Specifed group name is free to use. Generating groupID...')
+                goodGroupName = True
+    freeID = False
+    while not freeID:
+        groupID = str(random.randint(0, 100000000))
+        q = "SELECT GroupID FROM GroupInfo WHERE groupID = %s"
+        v = (groupID,)
+        mycursor.execute(q, v)
+        result = mycursor.fetchall()
+        if not result:
+            freeID = True
+
+    q = "INSERT INTO GroupInfo (GroupID, GroupName) VALUES (%s, %s);"
+    v = (groupID, groupName)
+    try:
+        mycursor.execute(q, v)
+        mydb.commit()
+    except mysql.connector.Error as er:
+        print("Error while attempting to create group: {}".format(er))
+    else:
+        print("Group successfully created. Automatically adding you to the group...")
+        q = "INSERT INTO GroupMembers (UserID, GroupID) VALUES (%s, %s);"
+        v = (userID, groupID)
+        try:
+            mycursor.execute(q, v)
+            mydb.commit()
+        except mysql.connector.Error as er:
+            print("Error while attempting to add you to the group: {}".format(er))
+        else:
+            print("Successfully added to group.")
+
+def joinGroup(userID, mycursor, mydb):
+    q = "SELECT GroupID, GroupName FROM GroupInfo"
+    mycursor.execute(q)
+    result = mycursor.fetchall()
+    groupIDs = []
+    groupNames = []
+    for item in result:
+        groupIDs.append(item[0])
+        groupNames.append(item[1])
+
+    print('Here is a list of available groups, by name: \n')
+    for groupName in groupNames:
+        print(groupName)
+
+    joinedGroup = False
+    while joinedGroup == False:
+        groupToJoin = input("Please input the name of the group you would like to join (case-insensitive), or 'b' to go back: ")
+        if groupToJoin == 'b':
+            return
+        elif groupToJoin in groupNames:
+            groupIndex = 0
+            for group in groupNames:
+                if group == groupToJoin:
+                    groupID = groupIDs[groupIndex]
+                    q = "SELECT * FROM GroupMembers WHERE UserID = %s AND GroupID = %s"
+                    v = (userID, groupID,)
+                    mycursor.execute(q, v)
+                    result = mycursor.fetchall()
+
+                    if result:
+                        print('You are already a member of that group.')
+                    else:
+                        print('Joining group...')
+                        q = "INSERT INTO GroupMembers (UserID, GroupID) VALUES (%s, %s);"
+                        v = (userID, groupID)
+                        try:
+                            mycursor.execute(q, v)
+                            mydb.commit()
+                        except mysql.connector.Error as er:
+                            print("Error while attempting to add you to the group: {}".format(er))
+                        else:
+                            print("Successfully added to group.")
+                            joinedGroup = True
+                groupIndex += 1
+        else:
+            print('Speicified name not recognized.')
+
 
 # Internal Helper Functions Below Here:
 
@@ -242,7 +339,6 @@ def friendCheck(UserID, FriendID, mycursor):
     mycursor.execute(q, v)
     result = mycursor.fetchall()
     return len(result)
-
 
 # 0 if not following, 1 if following
 def followCheck(UserID, FriendID, mycursor):
