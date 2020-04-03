@@ -1,5 +1,7 @@
 import re
 from datetime import date
+import mysql.connector
+
 
 def post(UserID, mycursor, mydb):
     # Get and check the content for the post
@@ -24,6 +26,19 @@ def post(UserID, mycursor, mydb):
     mycursor.execute("SELECT * FROM Meta;")
     PostID = mycursor.fetchall()[0][0]
     mycursor.execute("UPDATE Meta SET NextPostID = NextPostID + 1;")
+    q = "SELECT PostID FROM Posts WHERE PostID = %s;"
+    v = (PostID,)
+    mycursor.execute(q, v)
+    result = mycursor.fetchall()
+    while len(result) != 0:
+        mycursor.execute("SELECT * FROM Meta;")
+        PostID = mycursor.fetchall()[0][0]
+        mycursor.execute("UPDATE Meta SET NextPostID = NextPostID + 1;")
+        q = "SELECT PostID FROM Posts WHERE PostID = %s;"
+        v = (PostID,)
+        mycursor.execute(q, v)
+        result = mycursor.fetchall()
+    print(PostID)  # this print just for testing
 
     # Post by adding all the information to the database
     q = "INSERT INTO Posts (PostID, UserID, ParentPost, TopicID, GroupID, Content) VALUES (%s, %s, %s, %s, %s, %s);"
@@ -38,22 +53,37 @@ def post(UserID, mycursor, mydb):
 
     # TODO: Then add for everyone in the same groups (minus people that already got it b/c they followed the person)
 
-
     mydb.commit()
     return 0
 
 
 def read(PostID, mycursor):
-    q = "SELECT Content FROM Posts WHERE PostID = %s;"
-    v = (str(PostID),)
+    # q = "SELECT Content FROM Posts WHERE PostID = %s;"
+    q = "SELECT PostID, firstName, lastName, PostTime, GroupName, Content FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) WHERE PostID = %s;"
+    v = (PostID,)
     mycursor.execute(q, v)
-    Content = mycursor.fetchall()
-    print(Content[0][0])
+    result = mycursor.fetchall()[0]
+
+    if result[4] is None:
+        print("PostID: "+result[0]+"| Posted by: "+result[1]+" "+result[2]+"| On: "+str(result[3])+"\n"+result[5]+"\n")
+    else:
+        print("PostID: "+result[0]+"| Posted by: "+result[1]+" "+result[2]+"| On: "+str(result[3])+"| In Group: "+result[4]+"\n"+result[5]+"\n")
+
+    q = "SELECT COUNT(*) FROM Posts WHERE ParentPost = %s"
+    mycursor.execute(q, v)
+    result = mycursor.fetchall()[0]
+
+    print(result[0]+" people replied\n")
 
     return 0
 
 
-def readUnreadPosts():
+def listUnreadPosts(UserID, numPosts, mycursor, mydb):
+    q = "SELECT PostID, firstName, lastName, GroupName, SUBSTRING_INDEX(Content, " ", 10) FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) WHERE PostID IN (SELECT PostID FROM ReadStatus WHERE UserID = %s AND HasRead = FALSE) LIMIT %s;"
+    v = (UserID, numPosts)
+    mycursor.execute(q, v)
+    result = mycursor.fetchall()
+    print(result)
     return 0
 
 
@@ -102,7 +132,7 @@ def register(mycursor, mydb):
                 else:
                     print("Not a valid date.")
             dateJoined = str(date.today())
-            #print(dateJoined)
+            # print(dateJoined)
             q = "INSERT INTO Users (userID, firstName, lastName, birthDate, dateJoined) VALUES (%s, %s, %s, %s, %s);"
             v = (userID, firstName, lastName, birthDate, dateJoined)
 
@@ -202,6 +232,7 @@ def checkID(UserID, mycursor):
     result = mycursor.fetchall()
     return len(result)
 
+
 # Checks if two IDs are friends
 def friendCheck(UserID, FriendID, mycursor):
     q = "SELECT UserID FROM Friends WHERE (UserID = %s AND FriendID = %s) OR (UserID = %s AND FriendID = %s);"
@@ -209,6 +240,7 @@ def friendCheck(UserID, FriendID, mycursor):
     mycursor.execute(q, v)
     result = mycursor.fetchall()
     return len(result)
+
 
 # 0 if not following, 1 if following
 def followCheck(UserID, FriendID, mycursor):
