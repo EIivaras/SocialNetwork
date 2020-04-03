@@ -107,8 +107,13 @@ if successfullyConnected:
                             PostID = input("Which post do you want to read? (b = go back) PostID: ")
                             if PostID.upper() == 'B':
                                 break
-                            numReplies = input("How many replies do you want to see? Number: ")
                             api.read(PostID, mycursor)
+                            while True:
+                                ParentPost = input("Type parent PostID to see replies. (b = back) PostID: ")
+                                if ParentPost.upper() == 'B':
+                                    break
+                                numReplies = input("How many replies do you want to see? Number: ")
+                                api.readReplies(ParentPost, numReplies, UserID, mycursor, mydb)
                     elif action.upper() == 'T':  # this whole case should be deleted, it is just for testing
                         PostID = input("Which post do you want to read? (b = go back) PostID: ")
                         api.read(PostID, mycursor)

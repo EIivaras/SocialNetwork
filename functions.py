@@ -79,6 +79,7 @@ def read(PostID, mycursor):
 
 
 def listUnreadPosts(UserID, numPosts, mycursor, mydb):
+    # still have to sort by most popular in terms of upvotes / downvotes
     q = "SELECT PostID, firstName, lastName, GroupName, SUBSTRING_INDEX(Content, " ", 10) FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) WHERE PostID IN (SELECT PostID FROM ReadStatus WHERE UserID = %s AND HasRead = FALSE) LIMIT %s;"
     v = (UserID, numPosts)
     mycursor.execute(q, v)
@@ -87,7 +88,8 @@ def listUnreadPosts(UserID, numPosts, mycursor, mydb):
     return 0
 
 
-def readComments():
+def readReplies(ParentPost, numReplies, UserID, mycursor, mydb):
+
     return 0
 
 
