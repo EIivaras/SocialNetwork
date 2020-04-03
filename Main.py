@@ -1,7 +1,5 @@
 import mysql.connector
-# import re
 from os import listdir
-# from datetime import date
 import functions as api
 from tables import createTables
 
@@ -142,11 +140,11 @@ if successfullyConnected:
             elif action.upper() == 'G':
                 while True:
                     print("Group Menu:\nj = join group\nc = create group\nb = back\n")
-                    action = input("What would you like to do?")
+                    action = input("What would you like to do? ")
                     if action.upper() == 'J':
-                        api.joinGroup()
+                        api.joinGroup(UserID, mycursor, mydb)
                     elif action.upper() == 'C':
-                        api.createGroup()
+                        api.createGroup(UserID, mycursor, mydb)
                     elif action.upper() == 'B':
                         break
                     else:
