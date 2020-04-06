@@ -101,26 +101,45 @@ if successfullyConnected:
                     action = input("What would you like to do? ")
                     if action.upper() == 'P':
                         api.post(UserID, mycursor, mydb)
-                    elif action.upper() == 'R':
-                        numPosts = input("How many unread posts would you like to preview? ")
-                        api.listUnreadPosts(UserID, numPosts, mycursor, mydb)
+                    elif action.upper() == 'R' or action.upper() == 'I':
+                        if action.upper() == 'R':
+                            numPosts = input("How many unread posts would you like to preview? ")
+                            api.listUnreadPosts(UserID, numPosts, mycursor, mydb)
                         while True:
                             PostID = input("Which post do you want to read? (b = go back) PostID: ")
                             if PostID.upper() == 'B':
                                 break
-                            api.read(PostID, mycursor)
+                            api.read(PostID, mycursor, mydb, 0)
+                            PostIDStack = []
                             while True:
-                                ParentPost = input("Type parent PostID to see replies. (b = back) PostID: ")
-                                if ParentPost.upper() == 'B':
-                                    break
-                                numReplies = input("How many replies do you want to see? Number: ")
-                                api.readReplies(ParentPost, numReplies, UserID, mycursor, mydb)
+                                if len(PostIDStack) == 0:
+                                    print("Menu for PostID "+PostID+": v = upvote/downvote, c = comment, p = preview comments, b = go back")
+                                else:
+                                    print("Menu for CommentID "+PostID+": v = upvote/downvote, c = comment, p = preview comments, b = go back")
+                                postaction = input("What do you want to do? ")
 
-                    elif action.upper() == 'T':  # this whole case should be deleted, it is just for testing
-                        PostID = input("Which post do you want to read? (b = go back) PostID: ")
-                        api.read(PostID, mycursor)
-                    elif action.upper() == 'I':
-                        continue
+                                if postaction.upper() == 'V':
+                                    Reaction = input("u = upvote, d = downvote: ")
+                                    api.react(UserID, PostID, Reaction, mycursor, mydb)
+                                elif postaction.upper() == 'C':
+                                    api.reply()
+                                elif postaction.upper() == 'P':
+                                    numReplies = input("How many comments do you want to preview? Num:")
+                                    api.listUnreadReplies(PostID, numReplies, UserID, mycursor, mydb)
+
+                                    PostIDStack.append(PostID)
+                                    PostID = input("Which comment do you want to read? (b = go back) CommentID: ")
+                                    if PostID.upper() == 'B':
+                                        PostID = PostIDStack.pop()
+                                    else:
+                                        api.read(PostID, mycursor, mydb, 1)
+
+                                elif postaction.upper() == 'B':
+                                    if len(PostIDStack) == 0:
+                                        break
+                                    else:
+                                        PostID = PostIDStack.pop()
+
                     elif action.upper() == 'B':
                         break
                     else:

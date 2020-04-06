@@ -57,23 +57,26 @@ def post(UserID, mycursor, mydb):
     return 0
 
 
-def read(PostID, mycursor):
+def read(PostID, mycursor, mydb, commentFlag):
     # q = "SELECT Content FROM Posts WHERE PostID = %s;"
     q = "SELECT PostID, firstName, lastName, PostTime, GroupName, Content FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) WHERE PostID = %s;"
     v = (PostID,)
     mycursor.execute(q, v)
     result = mycursor.fetchall()[0]
 
-    if result[4] is None:
-        print("PostID: "+result[0]+"| Posted by: "+result[1]+" "+result[2]+"| On: "+str(result[3])+"\n"+result[5]+"\n")
+    if commentFlag == 1:
+        print("CommentID: "+result[0]+"| Made by: "+result[1]+" "+result[2]+"| On: "+str(result[3])+"\n"+result[5]+"\n")
     else:
-        print("PostID: "+result[0]+"| Posted by: "+result[1]+" "+result[2]+"| On: "+str(result[3])+"| In Group: "+result[4]+"\n"+result[5]+"\n")
+        if result[4] is None:
+            print("PostID: "+result[0]+"| Posted by: "+result[1]+" "+result[2]+"| On: "+str(result[3])+"\n"+result[5]+"\n")
+        else:
+            print("PostID: "+result[0]+"| Posted by: "+result[1]+" "+result[2]+"| On: "+str(result[3])+"| In Group: "+result[4]+"\n"+result[5]+"\n")
 
     q = "SELECT COUNT(*) FROM Posts WHERE ParentPost = %s"
     mycursor.execute(q, v)
     result = mycursor.fetchall()[0]
 
-    print(result[0]+" people replied\n")
+    print(result[0]+" people commented on this\n")
 
     return 0
 
@@ -88,8 +91,18 @@ def listUnreadPosts(UserID, numPosts, mycursor, mydb):
     return 0
 
 
-def readReplies(ParentPost, numReplies, UserID, mycursor, mydb):
+def listUnreadReplies(ParentPost, numReplies, UserID, mycursor, mydb):
 
+    return 0
+
+
+def reply():
+    return 0
+
+
+def react(UserID, PostID, Reaction, mycursor, mydb):
+    # insert the right data into the DB
+    # output "You have upvoted/downvoted this post" or "... post PostID"
     return 0
 
 
@@ -214,14 +227,6 @@ def follow(UserID, mycursor, mydb):
             mydb.commit()
             print("You will now see content from "+FriendID+"\n")
         return 0
-
-
-def reply():
-    return 0
-
-
-def react():
-    return 0
 
 
 # Internal Helper Functions Below Here:
