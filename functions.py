@@ -2,7 +2,6 @@ import mysql.connector
 import re
 import random
 from datetime import date
-import mysql.connector
 
 
 def post(UserID, mycursor, mydb):
@@ -15,9 +14,9 @@ def post(UserID, mycursor, mydb):
     ParentPost = None
 
     # Get TopicID if there is one
-    TopicID = input("What is the topic of your post? (Hit enter for none) TopicID: ")
-    if len(TopicID) == 0:
-        TopicID = None
+    # TopicID = input("What is the topic of your post? (Hit enter for none) TopicID: ")
+    # if len(TopicID) == 0:
+    #     TopicID = None
 
     # Get the GroupID if there is one
     GroupID = input("What group do you want to post in? (Hit enter for none) GroupID: ")
@@ -43,28 +42,32 @@ def post(UserID, mycursor, mydb):
     print(PostID)  # this print just for testing
 
     # Post by adding all the information to the database
-    q = "INSERT INTO Posts (PostID, UserID, ParentPost, TopicID, GroupID, Content) VALUES (%s, %s, %s, %s, %s, %s);"
-    v = (PostID, UserID, ParentPost, TopicID, GroupID, Content)
+    q = "INSERT INTO Posts (PostID, UserID, ParentPost, GroupID, Content) VALUES (%s, %s, %s, %s, %s);"
+    v = (PostID, UserID, ParentPost, GroupID, Content)
     mycursor.execute(q, v)
 
     # Now we need to add to the unread table
-    # TODO: First add it for everyone that follows this userID
+    # First add it for everyone that follows this userID
     q = "INSERT INTO ReadStatus (UserID, PostID) SELECT UserID, %s FROM (SELECT UserID FROM FollowedUsers WHERE FollowedID = %s) AS Temp;"
     v = (PostID, UserID)
     mycursor.execute(q, v)
 
-    # TODO: Then add for everyone in the same groups (minus people that already got it b/c they followed the person)
+    # Then add for everyone in the same groups (minus people that already got it b/c they followed the person)
+    q = "INSERT INTO ReadStatus (UserID, PostID) SELECT UserID, %s FROM (SELECT UserID FROM GroupMembers WHERE GroupID = %s AND UserID != %s) AS Temp1 LEFT JOIN (SELECT UserID FROM FollowedUsers WHERE FollowedID = %s) AS Temp2 USING (UserID) WHERE Temp2.UserID IS NULL;"
+    v = (PostID, GroupID, UserID, UserID)
+    mycursor.execute(q, v)
 
     mydb.commit()
     return 0
 
 
-def read(PostID, mycursor, mydb, commentFlag):
-    # q = "SELECT Content FROM Posts WHERE PostID = %s;"
+def read(PostID, UserID, mycursor, mydb, commentFlag):  # for reading posts and comments
     q = "SELECT PostID, firstName, lastName, PostTime, GroupName, Content FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) WHERE PostID = %s;"
     v = (PostID,)
     mycursor.execute(q, v)
     result = mycursor.fetchall()[0]
+
+    # TODO: add the number of upvotes and downvotes to the information displayed for each post
 
     if commentFlag == 1:
         print("CommentID: "+result[0]+"| Made by: "+result[1]+" "+result[2]+"| On: "+str(result[3])+"\n"+result[5]+"\n")
@@ -80,34 +83,70 @@ def read(PostID, mycursor, mydb, commentFlag):
 
     print(result[0]+" people commented on this\n")
 
+    # modify the read status table when the post is displayed to the user
+    q = "UPDATE ReadStatus SET HasRead = TRUE WHERE PostID = %s AND UserID = %s;"
+    v = (PostID, UserID)
+    mycursor.execute(q, v)
+
     return 0
 
 
 def listUnreadPosts(UserID, numPosts, mycursor, mydb):
-    q = "SELECT PostID, firstName, lastName, GroupName, SUBSTRING_INDEX(Content, " ", 10) FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) WHERE PostID IN (SELECT PostID FROM ReadStatus WHERE UserID = %s AND HasRead = FALSE) LIMIT %s;"
-    v = (UserID, numPosts)
+    # select the top numPosts number of posts based on total number of reactions
+    q = "SELECT PostID, firstName, lastName, PostTime, GroupName, SUBSTRING_INDEX(Content, " ", 10) FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) WHERE PostID IN (SELECT PostID FROM ReadStatus WHERE UserID = %s AND HasRead = FALSE) LIMIT %s;"
+    v = (UserID, int(numPosts))
     mycursor.execute(q, v)
     result = mycursor.fetchall()
-    print(result)
+
+    # add the number of upvotes and downvotes in the information displayed for each post
+
+    for row in result:
+        if result[4] is None:
+            print("PostID: "+row[0]+"| Posted by: "+row[1]+" "+row[2]+"| On: "+str(row[3])+"\n"+row[5]+"\n")
+        else:
+            print("PostID: "+row[0]+"| Posted by: "+row[1]+" "+row[2]+"| On: "+str(row[3])+"| In Group: "+row[4]+"\n"+row[5]+"\n")
+
     return 0
 
 
-<<<<<<< HEAD
 def listUnreadReplies(ParentPost, numReplies, UserID, mycursor, mydb):
+
+    # Very similar to listUnreadPosts() except with replies, same info should be displayed for each post
 
     return 0
 
 
 def reply():
+
+    # similar to post, might be able to incorporate this into post with a couple if statements
+
     return 0
 
 
-def react(UserID, PostID, Reaction, mycursor, mydb):
-    # insert the right data into the DB
-    # output "You have upvoted/downvoted this post" or "... post PostID"
-=======
-def readComments():
->>>>>>> 0506a148f0c97aa7b5ffc57efaf36c77f7d30af7
+def react(UserID, PostID, Reaction, commentFlag, mycursor, mydb):
+    if Reaction.upper() == 'U':
+        ReactValue = True
+    elif Reaction.upper() == 'D':
+        ReactValue = False
+    else:
+        print("That is not a reaction option.\n")
+        return -1
+
+    q = "INSERT INTO Reactions (UserID, PostID, Reaction) VALUSE (%s, %s, %s);"  # this statement still untested and I am not sure about inputting the true and false values
+    v = (UserID, PostID, ReactValue)
+    mycursor.execute(q, v)
+
+    if commentFlag > 0:
+        if ReactValue:
+            print("You have upvoted this comment")
+        else:
+            print("You have downvoted this comment")
+    else:
+        if ReactValue:
+            print("You have upvoted this post")
+        else:
+            print("You have downvoted this post")
+
     return 0
 
 
@@ -234,16 +273,7 @@ def follow(UserID, mycursor, mydb):
         return 0
 
 
-<<<<<<< HEAD
-=======
-def reply():
-    return 0
-
-
-def react():
-    return 0
-
-def createGroup(userID, mycursor, mydb):  
+def createGroup(userID, mycursor, mydb):
     groupID = ''
     goodGroupName = False
     while not goodGroupName:
@@ -293,6 +323,7 @@ def createGroup(userID, mycursor, mydb):
         else:
             print("Successfully added to group.")
 
+
 def joinGroup(userID, mycursor, mydb):
     q = "SELECT GroupID, GroupName FROM GroupInfo"
     mycursor.execute(q)
@@ -308,7 +339,7 @@ def joinGroup(userID, mycursor, mydb):
         print(groupName)
 
     joinedGroup = False
-    while joinedGroup == False:
+    while joinedGroup is False:
         groupToJoin = input("Please input the name of the group you would like to join (case-insensitive), or 'b' to go back: ")
         if groupToJoin == 'b':
             return
@@ -341,7 +372,6 @@ def joinGroup(userID, mycursor, mydb):
             print('Speicified name not recognized.')
 
 
->>>>>>> 0506a148f0c97aa7b5ffc57efaf36c77f7d30af7
 # Internal Helper Functions Below Here:
 
 # Check if a user ID is valid
@@ -360,6 +390,7 @@ def friendCheck(UserID, FriendID, mycursor):
     mycursor.execute(q, v)
     result = mycursor.fetchall()
     return len(result)
+
 
 # 0 if not following, 1 if following
 def followCheck(UserID, FriendID, mycursor):

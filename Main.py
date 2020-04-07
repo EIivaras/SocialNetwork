@@ -109,7 +109,7 @@ if successfullyConnected:
                             PostID = input("Which post do you want to read? (b = go back) PostID: ")
                             if PostID.upper() == 'B':
                                 break
-                            api.read(PostID, mycursor, mydb, 0)
+                            api.read(PostID, UserID, mycursor, mydb, 0)
                             PostIDStack = []
                             while True:
                                 if len(PostIDStack) == 0:
@@ -120,7 +120,7 @@ if successfullyConnected:
 
                                 if postaction.upper() == 'V':
                                     Reaction = input("u = upvote, d = downvote: ")
-                                    api.react(UserID, PostID, Reaction, mycursor, mydb)
+                                    api.react(UserID, PostID, Reaction, len(PostIDStack), mycursor, mydb)
                                 elif postaction.upper() == 'C':
                                     api.reply()
                                 elif postaction.upper() == 'P':
@@ -132,7 +132,7 @@ if successfullyConnected:
                                     if PostID.upper() == 'B':
                                         PostID = PostIDStack.pop()
                                     else:
-                                        api.read(PostID, mycursor, mydb, 1)
+                                        api.read(PostID, UserID, mycursor, mydb, 1)
 
                                 elif postaction.upper() == 'B':
                                     if len(PostIDStack) == 0:

@@ -11,4 +11,5 @@ def createTables(mycursor):
     mycursor.execute("CREATE TABLE IF NOT EXISTS Reactions (PostID VARCHAR(50) NOT NULL, UserID VARCHAR(50) NOT NULL, Reaction BOOLEAN NOT NULL, PRIMARY KEY (PostID, UserID), FOREIGN KEY (UserID) REFERENCES Users(UserID), FOREIGN KEY (PostID) REFERENCES Posts(PostID));")
     mycursor.execute("CREATE TABLE IF NOT EXISTS ReadStatus (PostID VARCHAR(50) NOT NULL, UserID VARCHAR(50) NOT NULL, HasRead BOOLEAN NOT NULL DEFAULT FALSE, PRIMARY KEY (PostID, UserID), FOREIGN KEY (UserID) REFERENCES Users(UserID), FOREIGN KEY (PostID) REFERENCES Posts(PostID));")
     mycursor.execute("CREATE TABLE IF NOT EXISTS Meta (NextPostID INT NOT NULL, PRIMARY KEY (NextPostID));")
+    mycursor.execute("CREATE VIEW Popularity AS SELECT PostID, COUNT(Reaction) AS numReactions FROM Reactions GROUP BY PostID;")
     return 0
