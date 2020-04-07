@@ -1,5 +1,5 @@
 import mysql.connector
-# import re
+import re
 from os import listdir
 # from datetime import date
 import functions as api
@@ -72,7 +72,7 @@ if successfullyConnected:
     UserID = ""
 
     while not loggedIn:
-        loginOrRegister = input("Please login (using your userID), register, or exit: l = login, r = register, e = exit: ")
+        loginOrRegister = input("Please login (using your userID), register, or exit: L = login, R = register, E = exit: ")
         if loginOrRegister.upper() == 'L':
             userObject = api.login(mycursor)
             if (userObject["success"]):
@@ -85,51 +85,63 @@ if successfullyConnected:
             print("Goodbye.")
             break
         else:
-            print("Input not recognized. Closing.")
-            break
+            print("That was not one of the options.")
 
     if loggedIn:
         while True:
-            action = input("Please choose an menu: p = post menu, f = friend menu, g = group menu, e = exit/logout: ")
+            action = input("Main Menu:\nP = post menu\nF = friend menu\nG = group menu\nE = exit/logout\nWhich menu do you want? ")
 
             if action.upper() == 'E':
                 break
 
             elif action.upper() == 'P':
                 while True:
-                    print("Post Menu:\np = make a post\nr = read unread posts\nt = test read\ni = read post by ID\nb = back")
-                    action = input("What would you like to do? ")
+                    action = input("Post Menu:\nP = make a post\nR = read unread posts\nI = read post by ID\nB = back\nWhat would you like to do? ")
                     if action.upper() == 'P':
                         api.post(UserID, None, mycursor, mydb)
                     elif action.upper() == 'R' or action.upper() == 'I':
                         if action.upper() == 'R':
-                            numPosts = input("How many unread posts would you like to preview? ")
-                            print("\n")
-                            api.listUnreadPosts(UserID, numPosts, mycursor, mydb)
+                            numPosts = input("How many unread posts would you like to preview? Number:")
+                            if not re.match("[0-9]+", numPosts):
+                                print("You must specify a number.")
+                                continue
+                            print("")
+                            listReturn = api.listUnreadPosts(UserID, numPosts, None, mycursor, mydb)
+                            if listReturn < 0:
+                                continue
                         while True:
-                            PostID = input("Which post do you want to read? (b = go back) PostID: ")
+                            PostID = input("Which post do you want to read? (B = go back) PostID: ")
+                            print("")
                             if PostID.upper() == 'B':
                                 break
-                            api.read(PostID, UserID, mycursor, mydb, 0)
+                            readResult = api.read(PostID, UserID, mycursor, mydb, 0)
+                            if readResult < 0:
+                                continue
                             PostIDStack = []
                             while True:
                                 if len(PostIDStack) == 0:
-                                    print("Menu for PostID "+PostID+": v = upvote/downvote, c = comment, p = preview comments, b = go back")
+                                    print("Menu for PostID "+PostID+": V = upvote/downvote, C = comment, P = preview comments, B = go back")
                                 else:
-                                    print("Menu for CommentID "+PostID+": v = upvote/downvote, c = comment, p = preview comments, b = go back")
+                                    print("Menu for CommentID "+PostID+": V = upvote/downvote, C = comment, P = preview comments, B = go back")
                                 postaction = input("What do you want to do? ")
 
                                 if postaction.upper() == 'V':
-                                    Reaction = input("u = upvote, d = downvote: ")
+                                    Reaction = input("U = upvote, D = downvote: ")
                                     api.react(UserID, PostID, Reaction, len(PostIDStack), mycursor, mydb)
                                 elif postaction.upper() == 'C':
                                     api.post(UserID, PostID, mycursor, mydb)
                                 elif postaction.upper() == 'P':
-                                    numReplies = input("How many comments do you want to preview? Num:")
-                                    api.listUnreadReplies(PostID, numReplies, UserID, mycursor, mydb)
+                                    numReplies = input("How many comments do you want to preview? Number:")
+                                    if not re.match("[0-9]+", numReplies):
+                                        print("You must specify a number.")
+                                        continue
+                                    print("")
+                                    listReturn = api.listUnreadPosts(UserID, numReplies, PostID, mycursor, mydb)
+                                    if listReturn < 0:
+                                        continue
 
                                     PostIDStack.append(PostID)
-                                    PostID = input("Which comment do you want to read? (b = go back) CommentID: ")
+                                    PostID = input("Which comment do you want to read? (B = go back) CommentID: ")
                                     if PostID.upper() == 'B':
                                         PostID = PostIDStack.pop()
                                     else:
@@ -148,7 +160,7 @@ if successfullyConnected:
 
             elif action.upper() == 'F':
                 while True:
-                    print("Friend Menu:\nf = add a friend\nu = unfollow a friend\nr = refollow a friend\nb = back\n")
+                    print("Friend Menu:\nF = add a friend\nU = unfollow a friend\nR = refollow a friend\nB = back\n")
                     action = input("What would you like to do? ")
                     if action.upper() == 'F':
                         api.friend(UserID, mycursor, mydb)
@@ -163,7 +175,7 @@ if successfullyConnected:
 
             elif action.upper() == 'G':
                 while True:
-                    print("Group Menu:\nj = join group\nc = create group\nb = back\n")
+                    print("Group Menu:\nJ = join group\nC = create group\nB = back\n")
                     action = input("What would you like to do?")
                     if action.upper() == 'J':
                         api.joinGroup()

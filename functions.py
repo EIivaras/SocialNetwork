@@ -34,7 +34,7 @@ def post(UserID, ParentPost, mycursor, mydb):  # Need to add some input error ch
         q = "SELECT GroupID FROM Posts WHERE PostID = %s;"
         v = (ParentPost,)
         mycursor.execute(q, v)
-        GroupID = mycursor.fecthall()[0][0]
+        GroupID = mycursor.fetchall()[0][0]
 
     # create a PostID
     mycursor.execute("SELECT * FROM Meta;")
@@ -52,7 +52,7 @@ def post(UserID, ParentPost, mycursor, mydb):  # Need to add some input error ch
         v = (PostID,)
         mycursor.execute(q, v)
         result = mycursor.fetchall()
-    print(PostID)  # this print just for testing
+    # print(PostID)  # this print just for testing
 
     # Post by adding all the information to the database
     q = "INSERT INTO Posts (PostID, UserID, ParentPost, GroupID, Content) VALUES (%s, %s, %s, %s, %s);"
@@ -61,8 +61,10 @@ def post(UserID, ParentPost, mycursor, mydb):  # Need to add some input error ch
 
     # Everyone has to upvote their own post when they post it so that stuff that references the populartiy view works
     if ParentPost is None:
+        print("Successfully posted")
         react(UserID, PostID, 'U', 0, mycursor, mydb)
     else:
+        print("Successfully commented")
         react(UserID, PostID, 'U', 1, mycursor, mydb)
 
     # Now we need to add to the unread table
@@ -84,22 +86,31 @@ def read(PostID, UserID, mycursor, mydb, commentFlag):  # for reading posts AND 
     q = "SELECT PostID, firstName, lastName, PostTime, GroupName, Content, numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) INNER JOIN Popularity USING(PostID) WHERE PostID = %s;"
     v = (PostID,)
     mycursor.execute(q, v)
-    result = mycursor.fetchall()[0]
+    rawResult = mycursor.fetchall()
+
+    if len(rawResult) == 0:
+        if commentFlag == 1:
+            print("There is no comment with that CommentID.")
+        else:
+            print("There is not post with that PostID.")
+        return -1
+
+    result = rawResult[0]
 
     Upvotes = 0 if result[6] is None else result[6]
     Downvotes = 0 if result[7] is None else result[7]
 
     q = "SELECT COUNT(*) FROM Posts WHERE ParentPost = %s"
     mycursor.execute(q, v)
-    result2 = mycursor.fetchall()[0]
+    Comments = mycursor.fetchall()[0][0]
 
     if commentFlag == 1:
-        print("CommentID: "+result[0]+" | Made by: "+result[1]+" "+result[2]+" | On: "+str(result[3])+"\n"+result[5]+"\nUpvotes: "+str(Upvotes)+" Downvotes: "+str(Downvotes)+" Comments: "+str(result2[0])+"\n")
+        print("CommentID: "+result[0]+" | Made by: "+result[1]+" "+result[2]+" | On: "+str(result[3])+"\n"+result[5]+"\nUpvotes: "+str(Upvotes)+" | Downvotes: "+str(Downvotes)+" | Comments: "+str(Comments)+"\n")
     else:
         if result[4] is None:
-            print("PostID: "+result[0]+" | Posted by: "+result[1]+" "+result[2]+" | On: "+str(result[3])+"\n"+result[5]+"\nUpvotes: "+str(Upvotes)+" Downvotes: "+str(Downvotes)+" Comments: "+str(result2[0])+"\n")
+            print("PostID: "+result[0]+" | Posted by: "+result[1]+" "+result[2]+" | On: "+str(result[3])+"\n"+result[5]+"\nUpvotes: "+str(Upvotes)+" | Downvotes: "+str(Downvotes)+" | Comments: "+str(Comments)+"\n")
         else:
-            print("PostID: "+result[0]+" | Posted by: "+result[1]+" "+result[2]+" | On: "+str(result[3])+" | In Group: "+result[4]+"\n"+result[5]+"\nUpvotes: "+str(Upvotes)+" Downvotes: "+str(Downvotes)+" Comments: "+str(result2[0])+"\n")
+            print("PostID: "+result[0]+" | Posted by: "+result[1]+" "+result[2]+" | On: "+str(result[3])+" | In Group: "+result[4]+"\n"+result[5]+"\nUpvotes: "+str(Upvotes)+" | Downvotes: "+str(Downvotes)+" | Comments: "+str(Comments)+"\n")
 
     # modify the read status table when the post is displayed to the user
     q = "UPDATE ReadStatus SET HasRead = TRUE WHERE PostID = %s AND UserID = %s;"
@@ -110,33 +121,42 @@ def read(PostID, UserID, mycursor, mydb, commentFlag):  # for reading posts AND 
     return 0
 
 
-def listUnreadPosts(UserID, numPosts, mycursor, mydb):
+def listUnreadPosts(UserID, numPosts, ParentPost, mycursor, mydb):  # for listing unread posts AND comments
     # select the top numPosts number of posts based on total number of reactions
-    q = "SELECT PostID, firstName, lastName, PostTime, GroupName, SUBSTRING_INDEX(Content, \" \", 10), numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) INNER JOIN Popularity USING(PostID) INNER JOIN ReadStatus USING(PostID) WHERE ReadStatus.UserID = %s AND ReadStatus.HasRead = FALSE ORDER BY Popularity.numReactions DESC LIMIT %s;"
-    v = (UserID, int(numPosts))
+    if ParentPost is None:
+        q = "SELECT PostID, firstName, lastName, PostTime, GroupName, SUBSTRING_INDEX(Content, \" \", 10), numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) INNER JOIN Popularity USING(PostID) INNER JOIN ReadStatus USING(PostID) WHERE ReadStatus.UserID = %s AND ReadStatus.HasRead = FALSE AND ParentPost IS NULL ORDER BY Popularity.numReactions DESC LIMIT %s;"
+        v = (UserID, int(numPosts))
+    else:
+        q = "SELECT PostID, firstName, lastName, PostTime, GroupName, SUBSTRING_INDEX(Content, \" \", 10), numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) INNER JOIN Popularity USING(PostID) INNER JOIN ReadStatus USING(PostID) WHERE ReadStatus.UserID = %s AND ReadStatus.HasRead = FALSE AND ParentPost = %s ORDER BY Popularity.numReactions DESC LIMIT %s;"
+        v = (UserID, ParentPost, int(numPosts))
     mycursor.execute(q, v)
     result = mycursor.fetchall()
+
+    if len(result) == 0:
+        if ParentPost is None:
+            print("You have no unread posts.\n")
+        else:
+            print("You have read all the comments on this post.\n")
+        return -1
 
     for row in result:
         Upvotes = 0 if row[6] is None else row[6]
         Downvotes = 0 if row[7] is None else row[7]
 
+        Preview = row[5]+"..." if row[5].count(" ") == 9 else row[5]
+
         q = "SELECT COUNT(*) FROM Posts WHERE ParentPost = %s"
         v = (row[0],)
         mycursor.execute(q, v)
-        result2 = mycursor.fetchall()[0]
+        Comments = mycursor.fetchall()[0][0]
 
-        if row[4] is None:
-            print("PostID: "+row[0]+" | Posted by: "+row[1]+" "+row[2]+" | On: "+str(row[3])+"\n"+row[5]+"...\nUpvotes: "+str(Upvotes)+" Downvotes: "+str(Downvotes)+" Comments: "+str(result2[0])+"\n")
+        if ParentPost is None:
+            if row[4] is None:
+                print("PostID: "+row[0]+" | Posted by: "+row[1]+" "+row[2]+" | On: "+str(row[3])+"\n"+Preview+"...\nUpvotes: "+str(Upvotes)+" | Downvotes: "+str(Downvotes)+" | Comments: "+str(Comments)+"\n")
+            else:
+                print("PostID: "+row[0]+" | Posted by: "+row[1]+" "+row[2]+" | On: "+str(row[3])+" | In Group: "+row[4]+"\n"+Preview+"...\nUpvotes: "+str(Upvotes)+" | Downvotes: "+str(Downvotes)+" | Comments: "+str(Comments)+"\n")
         else:
-            print("PostID: "+row[0]+" | Posted by: "+row[1]+" "+row[2]+" | On: "+str(row[3])+" | In Group: "+row[4]+"\n"+row[5]+"...\nUpvotes: "+str(Upvotes)+" Downvotes: "+str(Downvotes)+" Comments: "+str(result2[0])+"\n")
-
-    return 0
-
-
-def listUnreadReplies(ParentPost, numReplies, UserID, mycursor, mydb):
-
-    # Very similar to listUnreadPosts() except with replies, same info should be displayed for each post
+            print("CommentID: "+row[0]+" | Made by: "+row[1]+" "+row[2]+" | On: "+str(row[3])+"\n"+Preview+"...\nUpvotes: "+str(Upvotes)+" | Downvotes: "+str(Downvotes)+" | Comments: "+str(Comments)+"\n")
 
     return 0
 
