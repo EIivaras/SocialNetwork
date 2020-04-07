@@ -4,24 +4,37 @@ import random
 from datetime import date
 
 
-def post(UserID, mycursor, mydb):
+def post(UserID, ParentPost, mycursor, mydb):  # Need to add some input error checking here
     # Get and check the content for the post
-    Content = input("What do you want to post?\n")
+    if ParentPost is None:
+        Content = input("What do you want to post?\n")
+    else:
+        Content = input("What do you want to comment?\n")
     if len(Content) > 1000:
         print("That post was too long! Maximum length is 1000 characters.")
-
-    # ParentPost is null because this function is only used to initiate posts
-    ParentPost = None
+        return -1
 
     # Get TopicID if there is one
     # TopicID = input("What is the topic of your post? (Hit enter for none) TopicID: ")
     # if len(TopicID) == 0:
     #     TopicID = None
 
-    # Get the GroupID if there is one
-    GroupID = input("What group do you want to post in? (Hit enter for none) GroupID: ")
-    if len(GroupID) == 0:
-        GroupID = None
+    # Get the GroupID if there is one, or get it from the parent post if this is a comment
+    if ParentPost is None:
+        GroupID = input("What group do you want to post in? (Hit enter for none) GroupID: ")
+        if len(GroupID) == 0:
+            GroupID = None
+        q = "SELECT * FROM GroupInfo WHERE GroupID = %s;"
+        v = (GroupID,)
+        mycursor.execute(q, v)
+        if len(mycursor.fetchall()) == 0:
+            print("There is no group with that GroupID.")
+            return -2
+    else:
+        q = "SELECT GroupID FROM Posts WHERE PostID = %s;"
+        v = (ParentPost,)
+        mycursor.execute(q, v)
+        GroupID = mycursor.fecthall()[0][0]
 
     # create a PostID
     mycursor.execute("SELECT * FROM Meta;")
@@ -46,6 +59,12 @@ def post(UserID, mycursor, mydb):
     v = (PostID, UserID, ParentPost, GroupID, Content)
     mycursor.execute(q, v)
 
+    # Everyone has to upvote their own post when they post it so that stuff that references the populartiy view works
+    if ParentPost is None:
+        react(UserID, PostID, 'U', 0, mycursor, mydb)
+    else:
+        react(UserID, PostID, 'U', 1, mycursor, mydb)
+
     # Now we need to add to the unread table
     # First add it for everyone that follows this userID
     q = "INSERT INTO ReadStatus (UserID, PostID) SELECT UserID, %s FROM (SELECT UserID FROM FollowedUsers WHERE FollowedID = %s) AS Temp;"
@@ -61,50 +80,56 @@ def post(UserID, mycursor, mydb):
     return 0
 
 
-def read(PostID, UserID, mycursor, mydb, commentFlag):  # for reading posts and comments
-    q = "SELECT PostID, firstName, lastName, PostTime, GroupName, Content FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) WHERE PostID = %s;"
+def read(PostID, UserID, mycursor, mydb, commentFlag):  # for reading posts AND comments
+    q = "SELECT PostID, firstName, lastName, PostTime, GroupName, Content, numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) INNER JOIN Popularity USING(PostID) WHERE PostID = %s;"
     v = (PostID,)
     mycursor.execute(q, v)
     result = mycursor.fetchall()[0]
 
-    # TODO: add the number of upvotes and downvotes to the information displayed for each post
-
-    if commentFlag == 1:
-        print("CommentID: "+result[0]+"| Made by: "+result[1]+" "+result[2]+"| On: "+str(result[3])+"\n"+result[5]+"\n")
-    else:
-        if result[4] is None:
-            print("PostID: "+result[0]+"| Posted by: "+result[1]+" "+result[2]+"| On: "+str(result[3])+"\n"+result[5]+"\n")
-        else:
-            print("PostID: "+result[0]+"| Posted by: "+result[1]+" "+result[2]+"| On: "+str(result[3])+"| In Group: "+result[4]+"\n"+result[5]+"\n")
+    Upvotes = 0 if result[6] is None else result[6]
+    Downvotes = 0 if result[7] is None else result[7]
 
     q = "SELECT COUNT(*) FROM Posts WHERE ParentPost = %s"
     mycursor.execute(q, v)
-    result = mycursor.fetchall()[0]
+    result2 = mycursor.fetchall()[0]
 
-    print(result[0]+" people commented on this\n")
+    if commentFlag == 1:
+        print("CommentID: "+result[0]+" | Made by: "+result[1]+" "+result[2]+" | On: "+str(result[3])+"\n"+result[5]+"\nUpvotes: "+str(Upvotes)+" Downvotes: "+str(Downvotes)+" Comments: "+str(result2[0])+"\n")
+    else:
+        if result[4] is None:
+            print("PostID: "+result[0]+" | Posted by: "+result[1]+" "+result[2]+" | On: "+str(result[3])+"\n"+result[5]+"\nUpvotes: "+str(Upvotes)+" Downvotes: "+str(Downvotes)+" Comments: "+str(result2[0])+"\n")
+        else:
+            print("PostID: "+result[0]+" | Posted by: "+result[1]+" "+result[2]+" | On: "+str(result[3])+" | In Group: "+result[4]+"\n"+result[5]+"\nUpvotes: "+str(Upvotes)+" Downvotes: "+str(Downvotes)+" Comments: "+str(result2[0])+"\n")
 
     # modify the read status table when the post is displayed to the user
     q = "UPDATE ReadStatus SET HasRead = TRUE WHERE PostID = %s AND UserID = %s;"
     v = (PostID, UserID)
     mycursor.execute(q, v)
 
+    mydb.commit()
     return 0
 
 
 def listUnreadPosts(UserID, numPosts, mycursor, mydb):
     # select the top numPosts number of posts based on total number of reactions
-    q = "SELECT PostID, firstName, lastName, PostTime, GroupName, SUBSTRING_INDEX(Content, " ", 10) FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) WHERE PostID IN (SELECT PostID FROM ReadStatus WHERE UserID = %s AND HasRead = FALSE) LIMIT %s;"
+    q = "SELECT PostID, firstName, lastName, PostTime, GroupName, SUBSTRING_INDEX(Content, \" \", 10), numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) INNER JOIN Popularity USING(PostID) INNER JOIN ReadStatus USING(PostID) WHERE ReadStatus.UserID = %s AND ReadStatus.HasRead = FALSE ORDER BY Popularity.numReactions DESC LIMIT %s;"
     v = (UserID, int(numPosts))
     mycursor.execute(q, v)
     result = mycursor.fetchall()
 
-    # add the number of upvotes and downvotes in the information displayed for each post
-
     for row in result:
-        if result[4] is None:
-            print("PostID: "+row[0]+"| Posted by: "+row[1]+" "+row[2]+"| On: "+str(row[3])+"\n"+row[5]+"\n")
+        Upvotes = 0 if row[6] is None else row[6]
+        Downvotes = 0 if row[7] is None else row[7]
+
+        q = "SELECT COUNT(*) FROM Posts WHERE ParentPost = %s"
+        v = (row[0],)
+        mycursor.execute(q, v)
+        result2 = mycursor.fetchall()[0]
+
+        if row[4] is None:
+            print("PostID: "+row[0]+" | Posted by: "+row[1]+" "+row[2]+" | On: "+str(row[3])+"\n"+row[5]+"...\nUpvotes: "+str(Upvotes)+" Downvotes: "+str(Downvotes)+" Comments: "+str(result2[0])+"\n")
         else:
-            print("PostID: "+row[0]+"| Posted by: "+row[1]+" "+row[2]+"| On: "+str(row[3])+"| In Group: "+row[4]+"\n"+row[5]+"\n")
+            print("PostID: "+row[0]+" | Posted by: "+row[1]+" "+row[2]+" | On: "+str(row[3])+" | In Group: "+row[4]+"\n"+row[5]+"...\nUpvotes: "+str(Upvotes)+" Downvotes: "+str(Downvotes)+" Comments: "+str(result2[0])+"\n")
 
     return 0
 
@@ -112,13 +137,6 @@ def listUnreadPosts(UserID, numPosts, mycursor, mydb):
 def listUnreadReplies(ParentPost, numReplies, UserID, mycursor, mydb):
 
     # Very similar to listUnreadPosts() except with replies, same info should be displayed for each post
-
-    return 0
-
-
-def reply():
-
-    # similar to post, might be able to incorporate this into post with a couple if statements
 
     return 0
 
@@ -132,7 +150,7 @@ def react(UserID, PostID, Reaction, commentFlag, mycursor, mydb):
         print("That is not a reaction option.\n")
         return -1
 
-    q = "INSERT INTO Reactions (UserID, PostID, Reaction) VALUSE (%s, %s, %s);"  # this statement still untested and I am not sure about inputting the true and false values
+    q = "INSERT INTO Reactions (UserID, PostID, Reaction) VALUES (%s, %s, %s);"  # this statement still untested and I am not sure about inputting the true and false values
     v = (UserID, PostID, ReactValue)
     mycursor.execute(q, v)
 
@@ -147,6 +165,7 @@ def react(UserID, PostID, Reaction, commentFlag, mycursor, mydb):
         else:
             print("You have downvoted this post")
 
+    mydb.commit()
     return 0
 
 

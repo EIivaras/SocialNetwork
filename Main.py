@@ -100,10 +100,11 @@ if successfullyConnected:
                     print("Post Menu:\np = make a post\nr = read unread posts\nt = test read\ni = read post by ID\nb = back")
                     action = input("What would you like to do? ")
                     if action.upper() == 'P':
-                        api.post(UserID, mycursor, mydb)
+                        api.post(UserID, None, mycursor, mydb)
                     elif action.upper() == 'R' or action.upper() == 'I':
                         if action.upper() == 'R':
                             numPosts = input("How many unread posts would you like to preview? ")
+                            print("\n")
                             api.listUnreadPosts(UserID, numPosts, mycursor, mydb)
                         while True:
                             PostID = input("Which post do you want to read? (b = go back) PostID: ")
@@ -122,7 +123,7 @@ if successfullyConnected:
                                     Reaction = input("u = upvote, d = downvote: ")
                                     api.react(UserID, PostID, Reaction, len(PostIDStack), mycursor, mydb)
                                 elif postaction.upper() == 'C':
-                                    api.reply()
+                                    api.post(UserID, PostID, mycursor, mydb)
                                 elif postaction.upper() == 'P':
                                     numReplies = input("How many comments do you want to preview? Num:")
                                     api.listUnreadReplies(PostID, numReplies, UserID, mycursor, mydb)
