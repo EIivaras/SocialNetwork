@@ -230,7 +230,14 @@ def register(mycursor, mydb):
                 else:
                     print("Not a valid date.")
             dateJoined = str(date.today())
-            # print(dateJoined)
+            
+            print('\nIs all of the following data that you entered okay?')
+            print(f'userID: {userID}; firstName: {firstName}; lastName: {lastName}; birthDate: {birthDate};')
+            dataOkay = input("\nIf the above is what you wanted, type 'Y'. Otherwise, hit any other key and the process will be restarted: ")
+            
+            if dataOkay.upper() != 'Y':
+                continue
+
             q = "INSERT INTO Users (userID, firstName, lastName, birthDate, dateJoined) VALUES (%s, %s, %s, %s, %s);"
             v = (userID, firstName, lastName, birthDate, dateJoined)
 
@@ -250,7 +257,7 @@ def register(mycursor, mydb):
 def friend(UserID, mycursor, mydb):
     FriendID = input("Who do you want to become friends with? Their UserID: ")
     if not checkID(FriendID, mycursor):
-        print("There is no user with that UserID\n")
+        print("There is no user with that UserID.\n")
         return -1
 
     if not friendCheck(UserID, FriendID, mycursor):
