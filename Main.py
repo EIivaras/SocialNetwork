@@ -155,7 +155,10 @@ if successfullyConnected:
                                             print("You must specify a number.")
                                             continue
                                         print("")
-                                        listReturn = api.listUnreadPosts(UserID, numReplies, PostID, mycursor, mydb)
+                                        if action.upper() == 'I':
+                                            listReturn = api.listComments(UserID, numReplies, PostID, mycursor, mydb)
+                                        else:
+                                            listReturn = api.listUnreadPosts(UserID, numReplies, PostID, mycursor, mydb)
                                         if listReturn < 0:
                                             continue
 
