@@ -180,7 +180,7 @@ def browsePostsInGroup(UserID, mycursor, mydb):
             except ValueError as identifier:
                 print('That is not a number.')
 
-        q = "SELECT count(*) FROM Posts WHERE GroupID = %s AND ParentPost='';"
+        q = "SELECT count(*) FROM Posts WHERE GroupID = %s AND ParentPost IS NULL;"
         v = (groupIDs[groupToBrowse],)
         mycursor.execute(q, v)
         numberOfPostsForGroup = mycursor.fetchall()[0][0]
@@ -212,7 +212,7 @@ def browsePostsInGroup(UserID, mycursor, mydb):
 
                     if postNumberToRead != -1:
                         print('Getting post contents...')
-                        q = "SELECT PostID FROM Posts WHERE GroupID = %s AND ParentPost = '' ORDER BY PostTime ASC LIMIT %s,1;"
+                        q = "SELECT PostID FROM Posts WHERE GroupID = %s AND ParentPost IS NULL ORDER BY PostTime ASC LIMIT %s,1;"
                         v = (groupIDs[groupToBrowse], postNumberToRead - 1)
                         mycursor.execute(q, v)
                         PostID = mycursor.fetchall()[0][0]

@@ -187,7 +187,7 @@ if successfullyConnected:
 
                 elif action.upper() == 'F':
                     while True:
-                        print("Friend Menu:\nF = Add a Friend\nU = Unfollow a Friend\nR = Refollow a Friend\nB = Back\n")
+                        print("Friend Menu:\nF = Add a Friend\nU = Unfollow a Friend\nR = Refollow a Friend\nB = Back")
                         action = input("What would you like to do? ")
                         if action.upper() == 'F':
                             api.friend(UserID, mycursor, mydb)
@@ -202,7 +202,7 @@ if successfullyConnected:
 
                 elif action.upper() == 'G':
                     while True:
-                        print("Group Menu:\nJ = Join Group\nC = Create Group\nB = Back\n")
+                        print("Group Menu:\nJ = Join Group\nC = Create Group\nB = Back")
                         action = input("What would you like to do? ")
                         if action.upper() == 'J':
                             api.joinGroup(UserID, mycursor, mydb)
