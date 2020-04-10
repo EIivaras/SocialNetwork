@@ -487,7 +487,7 @@ def joinGroup(userID, mycursor, mydb):
         elif groupToJoin in groupNames:
             groupIndex = 0
             for group in groupNames:
-                if group == groupToJoin:
+                if group.upper() == groupToJoin.upper():
                     groupID = groupIDs[groupIndex]
                     q = "SELECT * FROM GroupMembers WHERE UserID = %s AND GroupID = %s"
                     v = (userID, groupID,)
