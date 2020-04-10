@@ -83,7 +83,7 @@ def post(UserID, ParentPost, mycursor, mydb):  # Need to add some input error ch
 
 
 def read(PostID, UserID, mycursor, mydb, commentFlag):  # for reading posts AND comments
-    q = "SELECT PostID, firstName, lastName, PostTime, GroupName, Content, numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) FULL OUTER JOIN Popularity USING(PostID) WHERE PostID = %s;"
+    q = "SELECT PostID, firstName, lastName, PostTime, GroupName, Content, numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) LEFT JOIN Popularity USING(PostID) WHERE PostID = %s;"
     v = (PostID,)
     mycursor.execute(q, v)
     rawResult = mycursor.fetchall()
