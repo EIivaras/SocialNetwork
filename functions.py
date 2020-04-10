@@ -521,13 +521,13 @@ def joinGroup(userID, mycursor, mydb):
 
     joinedGroup = False
     while joinedGroup is False:
-        groupToJoin = input("Please input the name of the group you would like to join (case-insensitive), or 'b' to go back: ")
+        groupToJoin = input("Please input the name of the group you would like to join (case-sensitive), or 'b' to go back: ")
         if groupToJoin == 'b':
             return
         elif groupToJoin in groupNames:
             groupIndex = 0
             for group in groupNames:
-                if group.upper() == groupToJoin.upper():
+                if group == groupToJoin:
                     groupID = groupIDs[groupIndex]
                     q = "SELECT * FROM GroupMembers WHERE UserID = %s AND GroupID = %s"
                     v = (userID, groupID,)
