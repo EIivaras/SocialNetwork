@@ -9,14 +9,14 @@ To run the code, python must be installed. Assuming it is, the code can be run v
 Upon successful MySQL server connection, database creation and data entry, the user will be presented with the command-line client.
 
 # Registration/Login #
-The first thing the user will always be asked to do upon consecutive executions of the application is to login or register (using the `L` or `R` keys respectively). This will create a `user` record in the budgetBook database, which will be used whenever the application user joins a group, makes a post, upvotes/downvotes a post, etc. No password is required as this project will not be used by more than the developers and the evaluators. Other than that, the only major piece of information that is required is the userID, which will be used to login on subsequent executions of the application (and is the user's `screen name`). One can specify their first name, last name and birth date but it is not necessary to create a user.
+The first thing the user will always be asked to do upon consecutive executions of the application is to login or register (using the `L` or `R` keys respectively). This will create a `user` record in the budgetBook database, which will be used whenever the application user joins a group, makes a post, upvotes/downvotes a post, etc. No password is required as this project will not be used by more than the developers and the evaluators. Other than that, the only major piece of information that is required is the userID, which will be used to login on subsequent executions of the application (and is the user's `screen name`). One can specify their first name, last name and birth date but they are not necessary to create a user.
 
 After registering, the user can login by pressing `L` and then typing in their userID.
 
 If during the process of registration the user made a mistake in their inputted data, they are given the opportunity to restart the registration process at the end of the data entry steps.
 
 # CLI #
-Upon successful login, the user is presented with the main menu. This includes 4 commands:
+Upon successful login, the user is presented with the main menu. This includes 5 commands:
 * P: Post Menu - Allows the user to create a post, read unread posts, read a post by ID or browse posts in a group that the user is in.
     * Unread posts are posts made by friends of the user after becoming friends (and assuming the user did not unfollow their friend)
     * Browsing posts in a group allows the user to browse any post in the group and see the content of that post, but to actually comment or upvote it the user needs to read the post by ID (the ID is given to the user in the browse option).
@@ -29,8 +29,11 @@ Upon successful login, the user is presented with the main menu. This includes 4
     * Allows the application user to switch budgetBook users.
 * E: Exit the Application
 
+The exact breakdown of every command in every menu is not included, but after entering each menu the commands themselves are self-explanatory.
+
 # Video Demo #
 The mp4 file of the video has been included in our submission but can also be viewed on YouTube at https://www.youtube.com/watch?v=deVcSJQr64E&feature=youtu.be (it was uploaded as unlisted). 
+
 **Note: I accidentally mispoke in the video and said you can't post if you aren't in a group - this is not true, it will just post to your profile and not actually within a group (groupID will be left as null).**
 
 # References #
