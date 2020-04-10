@@ -219,10 +219,10 @@ def browsePostsInGroup(UserID, mycursor, mydb):
 def listUnreadPosts(UserID, numPosts, ParentPost, mycursor, mydb):  # for listing unread posts AND comments
     # select the top numPosts number of posts based on total number of reactions
     if ParentPost is None:
-        q = "SELECT PostID, firstName, lastName, PostTime, GroupName, SUBSTRING_INDEX(Content, \" \", 10), numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) INNER JOIN Popularity USING(PostID) INNER JOIN ReadStatus USING(PostID) WHERE ReadStatus.UserID = %s AND ReadStatus.HasRead = FALSE AND ParentPost IS NULL ORDER BY Popularity.numReactions DESC LIMIT %s;"
+        q = "SELECT PostID, firstName, lastName, PostTime, GroupName, SUBSTRING_INDEX(Content, \" \", 10), numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) LEFT JOIN Popularity USING(PostID) INNER JOIN ReadStatus USING(PostID) WHERE ReadStatus.UserID = %s AND ReadStatus.HasRead = FALSE AND ParentPost IS NULL ORDER BY Popularity.numReactions DESC LIMIT %s;"
         v = (UserID, int(numPosts))
     else:
-        q = "SELECT PostID, firstName, lastName, PostTime, GroupName, SUBSTRING_INDEX(Content, \" \", 10), numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) INNER JOIN Popularity USING(PostID) INNER JOIN ReadStatus USING(PostID) WHERE ReadStatus.UserID = %s AND ReadStatus.HasRead = FALSE AND ParentPost = %s ORDER BY Popularity.numReactions DESC LIMIT %s;"
+        q = "SELECT PostID, firstName, lastName, PostTime, GroupName, SUBSTRING_INDEX(Content, \" \", 10), numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) LEFT JOIN Popularity USING(PostID) INNER JOIN ReadStatus USING(PostID) WHERE ReadStatus.UserID = %s AND ReadStatus.HasRead = FALSE AND ParentPost = %s ORDER BY Popularity.numReactions DESC LIMIT %s;"
         v = (UserID, ParentPost, int(numPosts))
     mycursor.execute(q, v)
     result = mycursor.fetchall()
@@ -258,7 +258,7 @@ def listUnreadPosts(UserID, numPosts, ParentPost, mycursor, mydb):  # for listin
 
 def listComments(UserID, numPosts, ParentPost, mycursor, mydb):  # for listing comments (not specifically unread)
     # select the top numPosts number of posts based on total number of reactions
-    q = "SELECT PostID, firstName, lastName, PostTime, SUBSTRING_INDEX(Content, \" \", 10), numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) INNER JOIN Popularity USING(PostID) WHERE ParentPost = %s ORDER BY Popularity.numReactions DESC LIMIT %s;"
+    q = "SELECT PostID, firstName, lastName, PostTime, SUBSTRING_INDEX(Content, \" \", 10), numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN Popularity USING(PostID) WHERE ParentPost = %s ORDER BY Popularity.numReactions DESC LIMIT %s;"
     v = (ParentPost, int(numPosts))
     mycursor.execute(q, v)
     result = mycursor.fetchall()
