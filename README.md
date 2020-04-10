@@ -39,6 +39,7 @@ The exact breakdown of every command in every menu is not included, but after en
 The video demo can be viewed on YouTube at https://www.youtube.com/watch?v=deVcSJQr64E&feature=youtu.be (it was uploaded as unlisted). 
 
 **Note 1: I accidentally mispoke in the video and said you can't post if you aren't in a group - this is not true, it will just post to your profile and not actually within a group (groupID will be left as null).** This is what happens in the YouTube video when testuser1 posts.
+
 **Note 2: You do need to have the python mysql connector installed as well to successfully run the code, details are further up in the README (mispoke on the YouTube video).**
 
 # References #
