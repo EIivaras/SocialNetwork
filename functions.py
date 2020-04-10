@@ -370,7 +370,10 @@ def register(mycursor, mydb):
                 continue
 
             q = "INSERT INTO Users (userID, firstName, lastName, birthDate, dateJoined) VALUES (%s, %s, %s, %s, %s);"
-            v = (userID, firstName, lastName, birthDate, dateJoined)
+            if birthDate == '':
+                v = (userID, firstName, lastName, None, dateJoined)
+            else:
+                v = (userID, firstName, lastName, birthDate, dateJoined)
 
             try:
                 mycursor.execute(q, v)

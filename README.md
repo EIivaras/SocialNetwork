@@ -17,7 +17,9 @@ If during the process of registration the user made a mistake in their inputted 
 
 # CLI #
 Upon successful login, the user is presented with the main menu. This includes 4 commands:
-* P: Post Menu - Allows the user to create a post, read unread posts or read a post by ID.
+* P: Post Menu - Allows the user to create a post, read unread posts, read a post by ID or browse posts in a group that the user is in.
+    * Unread posts are posts made by friends of the user after becoming friends (and assuming the user did not unfollow their friend)
+    * Browsing posts in a group allows the user to browse any post in the group and see the content of that post, but to actually comment or upvote it the user needs to read the post by ID (the ID is given to the user in the browse option).
 * F: Friend Menu - Allows the user to add a friend, unfollow a friend or refollow a friend.
     * When a user adds a friend, that friend is automatically a followed, meaning that user's posts will appear in the user's unread posts list.
     * Unfollowing a friend means the user will not will not see that friend's posts in their unread posts, but they will still be friends.
