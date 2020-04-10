@@ -179,7 +179,7 @@ def browsePostsInGroup(UserID, mycursor, mydb):
     print('Getting post contents...')
 
     if postNumberToRead != -1:
-        q = "SELECT PostID FROM Posts WHERE GroupID = %s AND ParentPost = '' limit %s,1;"
+        q = "SELECT PostID FROM Posts WHERE GroupID = %s AND ParentPost = '' ORDER BY PostTime ASC LIMIT %s,1;"
         v = (groupIDs[groupToBrowse],postNumberToRead - 1)
         mycursor.execute(q,v)
         PostID = mycursor.fetchall()[0][0]
