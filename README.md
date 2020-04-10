@@ -1,8 +1,8 @@
 # Introduction #
-This project was created as a group of two by Zachary Walford (zwalford - 20679930) and Peter Dye (pjadye - 20678160), and is our take on a social network. We used Facebook as a template as the sample data we used to populate the database was taken from a kaggle dataset [1], which pulled data from five different facebook groups. 
+This project was created as a group of two by Zachary Walford (zwalford - 20679930) and Peter Dye (pjadye - 20678160), and is our take on a social network. We used Facebook as a template since the sample data we used to populate the database was taken from a kaggle dataset [1], which pulled data from five different facebook groups. 
 
 # Running the Code: #
-To run the code, python must be installed. Assuming it is, the code be run via a simple: `python Main.py` in the terminal window. The first thing the application will do is prompt the user for a mysql server running somewhere. Simply type the host address, username and password as directed and the application will connect to the MySQL server before creating the database (which we have called `budgetBook`) and populating it with the sample data we pulled from a kaggle dataset [1], albeit converted into a friendly format for insertion into our database. 
+To run the code, python must be installed. Assuming it is, the code can be run via a simple: `python Main.py` in the terminal window. The first thing the application will do is prompt the user for a mysql server running somewhere. Simply type the host address, username and password as directed and the application will connect to the MySQL server before creating the database (which we have called `budgetBook`) and populating it with the sample data we pulled from a kaggle dataset [1], albeit converted into a friendly format for insertion into our database. 
 
 **Note that the application will not re-create the database every time the application is run** - instead, the application will check if the database already exists, and if it doesn't, then it will create the database and populate it.
 
@@ -21,10 +21,10 @@ Upon successful login, the user is presented with the main menu. This includes 4
     * Unread posts are posts made by friends of the user after becoming friends (and assuming the user did not unfollow their friend)
     * Browsing posts in a group allows the user to browse any post in the group and see the content of that post, but to actually comment or upvote it the user needs to read the post by ID (the ID is given to the user in the browse option).
 * F: Friend Menu - Allows the user to add a friend, unfollow a friend or refollow a friend.
-    * When a user adds a friend, that friend is automatically a followed, meaning that user's posts will appear in the user's unread posts list.
+    * When a user adds a friend, that friend is automatically followed, meaning that user's posts will appear in the user's unread posts list, if their new friend makes a new post.
     * Unfollowing a friend means the user will not will not see that friend's posts in their unread posts, but they will still be friends.
 * G: Group Menu - Allows the user to create or join a group.
-    * In facebook, which this database mocks, groups = topics. Whenever a user makes a post, they choose a group that they are in to post to.
+    * In facebook, which this database mocks, groups = topics. Whenever a user makes a post, they choose a group that they are in to post to. Users can also post on their own profile, and the post will not be associated with any group.
 * L: Logout
     * Allows the application user to switch budgetBook users.
 * E: Exit the Application
