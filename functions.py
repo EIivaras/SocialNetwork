@@ -10,8 +10,8 @@ def post(UserID, ParentPost, mycursor, mydb):  # Need to add some input error ch
         Content = input("What do you want to post?\n")
     else:
         Content = input("What do you want to comment?\n")
-    if len(Content) > 1000:
-        print("That post was too long! Maximum length is 1000 characters.")
+    if len(Content) > 2000:
+        print("That post was too long! Maximum length is 2000 characters.")
         return -1
 
     # Get TopicID if there is one
