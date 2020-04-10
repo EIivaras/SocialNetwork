@@ -21,28 +21,33 @@ def post(UserID, ParentPost, mycursor, mydb):  # Need to add some input error ch
 
     # Get the GroupID if there is one, or get it from the parent post if this is a comment
     if ParentPost is None:
-        print("These are the groups you are a member of: ")
         q = "SELECT GroupID, GroupName FROM GroupInfo INNER JOIN GroupMembers USING(GroupID) WHERE UserID = %s;"
         v = (UserID,)
         mycursor.execute(q, v)
         groupsList = mycursor.fetchall()
-        i = 1
-        for group in groupsList:
-            print(str(i)+". "+group[1])
-        GroupIndex = input("What group do you want to post in? (Enter 0 for none) Number: ")
-        while not re.match("[0-9]+", GroupIndex):
-            print("You must specify a number.")
-            GroupIndex = input("What group do you want to post in? (Hit enter for none) Number: ")
-        if int(GroupIndex) == 0:
+        if len(groupsList) == 0:
+            print("You are posting on your own profile. Join a group is you want to post there.")
             GroupID = None
         else:
-            GroupID = groupsList[int(GroupIndex)-1][0]
-            q = "SELECT * FROM GroupInfo WHERE GroupID = %s;"
-            v = (GroupID,)
-            mycursor.execute(q, v)
-            if len(mycursor.fetchall()) == 0:
-                print("There is no group with that GroupID.")
-                return -2
+            print("These are the groups you are a member of: ")
+            i = 1
+            for group in groupsList:
+                print(str(i)+". "+group[1])
+                i += 1
+            GroupIndex = input("What group do you want to post in? (Enter 0 for none) Number: ")
+            while not re.match("[0-9]+", GroupIndex):
+                print("You must specify a number.")
+                GroupIndex = input("What group do you want to post in? (Enter 0 for none) Number: ")
+            if int(GroupIndex) == 0:
+                GroupID = None
+            else:
+                GroupID = groupsList[int(GroupIndex)-1][0]
+                # q = "SELECT * FROM GroupInfo WHERE GroupID = %s;"
+                # v = (GroupID,)
+                # mycursor.execute(q, v)
+                # if len(mycursor.fetchall()) == 0:
+                #     print("There is no group with that GroupID.")
+                #     return -2
     else:
         q = "SELECT GroupID FROM Posts WHERE PostID = %s;"
         v = (ParentPost,)
