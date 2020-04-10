@@ -5,6 +5,7 @@ This project was created as a group of two by Zachary Walford (zwalford - 206799
 To run the code, 2 things are required:
 * Python must be installed. 
 * The python MySQL connector must also be installed. It can be installed by running `python -m pip install mysql-connector`.
+
 Assuming the above two items are installed, the code can be run via a simple: `python Main.py` in the terminal window. The first thing the application will do is prompt the user for a mysql server running somewhere. Simply type the host address, username and password as directed and the application will connect to the MySQL server before creating the database (which we have called `budgetBook`) and populating it with the sample data we pulled from a kaggle dataset [1], albeit converted into a friendly format for insertion into our database. 
 
 **Note that the application will not re-create the database every time the application is run** - instead, the application will check if the database already exists, and if it doesn't, then it will create the database and populate it.
