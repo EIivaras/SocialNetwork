@@ -21,15 +21,28 @@ def post(UserID, ParentPost, mycursor, mydb):  # Need to add some input error ch
 
     # Get the GroupID if there is one, or get it from the parent post if this is a comment
     if ParentPost is None:
-        GroupID = input("What group do you want to post in? (Hit enter for none) GroupID: ")
-        if len(GroupID) == 0:
-            GroupID = None
-        q = "SELECT * FROM GroupInfo WHERE GroupID = %s;"
-        v = (GroupID,)
+        print("These are the groups you are a member of: ")
+        q = "SELECT GroupID, GroupName FROM GroupInfo INNER JOIN GroupMembers USING(GroupID) WHERE UserID = %s;"
+        v = (UserID,)
         mycursor.execute(q, v)
-        if len(mycursor.fetchall()) == 0:
-            print("There is no group with that GroupID.")
-            return -2
+        groupsList = mycursor.fetchall()
+        i = 1
+        for group in groupsList:
+            print(str(i)+". "+group[1])
+        GroupIndex = input("What group do you want to post in? (Enter 0 for none) Number: ")
+        while not re.match("[0-9]+", GroupIndex):
+            print("You must specify a number.")
+            GroupIndex = input("What group do you want to post in? (Hit enter for none) Number: ")
+        if int(GroupIndex) == 0:
+            GroupID = None
+        else:
+            GroupID = groupsList[int(GroupIndex)-1][0]
+            q = "SELECT * FROM GroupInfo WHERE GroupID = %s;"
+            v = (GroupID,)
+            mycursor.execute(q, v)
+            if len(mycursor.fetchall()) == 0:
+                print("There is no group with that GroupID.")
+                return -2
     else:
         q = "SELECT GroupID FROM Posts WHERE PostID = %s;"
         v = (ParentPost,)
@@ -120,10 +133,11 @@ def read(PostID, UserID, mycursor, mydb, commentFlag):  # for reading posts AND 
     mydb.commit()
     return 0
 
+
 def browsePostsInGroup(UserID, mycursor, mydb):
     q = "SELECT DISTINCT GroupID, GroupName FROM GroupInfo NATURAL JOIN GroupMembers WHERE UserID = %s;"
     v = (UserID,)
-    mycursor.execute(q,v)
+    mycursor.execute(q, v)
     result = mycursor.fetchall()
     groupIDs = []
     groupNames = []
@@ -160,7 +174,7 @@ def browsePostsInGroup(UserID, mycursor, mydb):
 
         q = "SELECT count(*) FROM Posts WHERE GroupID = %s AND ParentPost='';"
         v = (groupIDs[groupToBrowse],)
-        mycursor.execute(q,v)
+        mycursor.execute(q, v)
         numberOfPostsForGroup = mycursor.fetchall()[0][0]
 
         wantsToRead = True
@@ -187,8 +201,8 @@ def browsePostsInGroup(UserID, mycursor, mydb):
                     if postNumberToRead != -1:
                         print('Getting post contents...')
                         q = "SELECT PostID FROM Posts WHERE GroupID = %s AND ParentPost = '' ORDER BY PostTime ASC LIMIT %s,1;"
-                        v = (groupIDs[groupToBrowse],postNumberToRead - 1)
-                        mycursor.execute(q,v)
+                        v = (groupIDs[groupToBrowse], postNumberToRead - 1)
+                        mycursor.execute(q, v)
                         PostID = mycursor.fetchall()[0][0]
                         read(PostID, UserID, mycursor, mydb, 0)
 
