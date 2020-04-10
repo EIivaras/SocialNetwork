@@ -33,6 +33,7 @@ The exact breakdown of every command in every menu is not included, but after en
 
 # Video Demo #
 The mp4 file of the video has been included in our submission but can also be viewed on YouTube at https://www.youtube.com/watch?v=deVcSJQr64E&feature=youtu.be (it was uploaded as unlisted). 
+
 **Note: I accidentally mispoke in the video and said you can't post if you aren't in a group - this is not true, it will just post to your profile and not actually within a group (groupID will be left as null).**
 
 # References #
