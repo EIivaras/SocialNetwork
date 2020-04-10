@@ -183,7 +183,6 @@ def browsePostsInGroup(UserID, mycursor, mydb):
         v = (groupIDs[groupToBrowse],postNumberToRead - 1)
         mycursor.execute(q,v)
         PostID = mycursor.fetchall()[0][0]
-        print(PostID)
         read(PostID, UserID, mycursor, mydb, 0)
 
 
