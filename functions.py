@@ -92,7 +92,7 @@ def read(PostID, UserID, mycursor, mydb, commentFlag):  # for reading posts AND 
         if commentFlag == 1:
             print("There is no comment with that CommentID.")
         else:
-            print("There is not post with that PostID.")
+            print("There is not a post with that PostID.")
         return -1
 
     result = rawResult[0]
@@ -119,6 +119,72 @@ def read(PostID, UserID, mycursor, mydb, commentFlag):  # for reading posts AND 
 
     mydb.commit()
     return 0
+
+def browsePostsInGroup(UserID, mycursor, mydb):
+    q = "SELECT DISTINCT GroupID, GroupName FROM GroupInfo NATURAL JOIN GroupMembers WHERE UserID = %s;"
+    v = (UserID,)
+    mycursor.execute(q,v)
+    result = mycursor.fetchall()
+    groupIDs = []
+    groupNames = []
+    for item in result:
+        groupIDs.append(item[0])
+        groupNames.append(item[1])
+
+    if not groupNames:
+        print('You are not in any groups.')
+        return
+
+    print('Here is a list of all the groups you are in, by name: \n')
+    for groupName in groupNames:
+        print(groupName)
+    print('\nWhich group would you like to read from?')
+    groupIndex = 0
+    for groupName in groupNames:
+        print(f"Type '{groupIndex}' (the group number) to browse in the group '{groupName}.'"); 
+
+    groupIndexOkay = False
+    while not groupIndexOkay:
+        groupToBrowse = input("Group Number (or type 'E' to exit): ")
+        if groupToBrowse == 'e' or groupToBrowse == 'E':
+            return
+        try:
+            groupToBrowse = int(groupToBrowse)
+            if groupToBrowse < 0 or groupToBrowse > len(groupNames) - 1:
+                print('That number was not one of the options.')
+            else:
+                groupIndexOkay = True
+        except ValueError as identifier:
+            print('That is not a number.')
+
+    q = "SELECT count(*) FROM Posts WHERE GroupID = %s AND ParentPost='';"
+    v = (groupIDs[groupToBrowse],)
+    mycursor.execute(q,v)
+    numberOfPostsForGroup = mycursor.fetchall()[0][0]
+
+    postNumberOkay = False
+    postNumberToRead = -1
+    while not postNumberOkay:
+        postNumberToRead = input(f"There are {numberOfPostsForGroup} posts for this group. Which post would you like to read? Type '1' for first post, etc, type 'E' to exit: ")
+        if postNumberToRead == 'e' or postNumberToRead == 'E':
+            return
+        try:
+            postNumberToRead = int(postNumberToRead)
+            if postNumberToRead < 1 or postNumberToRead > int(numberOfPostsForGroup):
+                print('That number did not fall within the number of posts!')
+            else:
+                postNumberOkay = True
+        except ValueError as identifier:
+            print('That is not a number.')
+    print('Getting post contents...')
+
+    if postNumberToRead != -1:
+        q = "SELECT PostID FROM Posts WHERE GroupID = %s AND ParentPost = '' limit %s,1;"
+        v = (groupIDs[groupToBrowse],postNumberToRead - 1)
+        mycursor.execute(q,v)
+        PostID = mycursor.fetchall()[0][0]
+        print(PostID)
+        read(PostID, UserID, mycursor, mydb, 0)
 
 
 def listUnreadPosts(UserID, numPosts, ParentPost, mycursor, mydb):  # for listing unread posts AND comments

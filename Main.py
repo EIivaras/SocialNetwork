@@ -114,7 +114,7 @@ if successfullyConnected:
 
                 elif action.upper() == 'P':
                     while True:
-                        action = input("Post Menu:\nP = Create a Post\nR = Read Unread Posts\nI = Read Post by ID\nB = Back\nWhat would you like to do? ")
+                        action = input("Post Menu:\nP = Create a Post\nR = Read Unread Posts\nI = Read Post by ID\nG = Browse Posts by Group\nB = Back\nWhat would you like to do? ")
                         if action.upper() == 'P':
                             api.post(UserID, None, mycursor, mydb)
                         elif action.upper() == 'R' or action.upper() == 'I':
@@ -171,6 +171,8 @@ if successfullyConnected:
                                         else:
                                             PostID = PostIDStack.pop()
 
+                        elif action.upper() == 'G':
+                            api.browsePostsInGroup(UserID, mycursor, mydb)
                         elif action.upper() == 'B':
                             break
                         else:
