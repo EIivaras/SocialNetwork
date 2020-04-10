@@ -16,7 +16,7 @@ After registering, the user can login by pressing `L` and then typing in their u
 If during the process of registration the user made a mistake in their inputted data, they are given the opportunity to restart the registration process at the end of the data entry steps.
 
 # CLI #
-Upon successful login, the user is presented with the main menu. This includes 4 commands:
+Upon successful login, the user is presented with the main menu. This includes 5 commands:
 * P: Post Menu - Allows the user to create a post, read unread posts, read a post by ID or browse posts in a group that the user is in.
     * Unread posts are posts made by friends of the user after becoming friends (and assuming the user did not unfollow their friend)
     * Browsing posts in a group allows the user to browse any post in the group and see the content of that post, but to actually comment or upvote it the user needs to read the post by ID (the ID is given to the user in the browse option).
@@ -28,6 +28,8 @@ Upon successful login, the user is presented with the main menu. This includes 4
 * L: Logout
     * Allows the application user to switch budgetBook users.
 * E: Exit the Application
+
+The exact breakdown of every command in every menu is not included, but after entering each menu the commands themselves are self-explanatory.
 
 # Video Demo #
 The mp4 file of the video has been included in our submission but can also be viewed on YouTube at https://www.youtube.com/watch?v=deVcSJQr64E&feature=youtu.be (it was uploaded as unlisted). 
