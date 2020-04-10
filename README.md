@@ -1,8 +1,8 @@
 # Introduction #
-This project was created as a group of two by Zachary Walford (zwalford - 20679930) and Peter Dye (pjadye - 20678160), and is our take on a social network. We used Facebook as a template as the sample data we used to populate the database was taken from a kaggle dataset [1], which pulled data from five different facebook groups. 
+This project was created as a group of two by Zachary Walford (zwalford - 20679930) and Peter Dye (pjadye - 20678160), and is our take on a social network. We used Facebook as a template since the sample data we used to populate the database was taken from a kaggle dataset [1], which pulled data from five different facebook groups. 
 
 # Running the Code: #
-To run the code, python must be installed. Assuming it is, the code be run via a simple: `python Main.py` in the terminal window. The first thing the application will do is prompt the user for a mysql server running somewhere. Simply type the host address, username and password as directed and the application will connect to the MySQL server before creating the database (which we have called `budgetBook`) and populating it with the sample data we pulled from a kaggle dataset [1], albeit converted into a friendly format for insertion into our database. 
+To run the code, python must be installed. Assuming it is, the code can be run via a simple: `python Main.py` in the terminal window. The first thing the application will do is prompt the user for a mysql server running somewhere. Simply type the host address, username and password as directed and the application will connect to the MySQL server before creating the database (which we have called `budgetBook`) and populating it with the sample data we pulled from a kaggle dataset [1], albeit converted into a friendly format for insertion into our database. 
 
 **Note that the application will not re-create the database every time the application is run** - instead, the application will check if the database already exists, and if it doesn't, then it will create the database and populate it.
 
