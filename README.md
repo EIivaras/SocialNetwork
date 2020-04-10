@@ -2,7 +2,10 @@
 This project was created as a group of two by Zachary Walford (zwalford - 20679930) and Peter Dye (pjadye - 20678160), and is our take on a social network. We used Facebook as a template since the sample data we used to populate the database was taken from a kaggle dataset [1], which pulled data from five different facebook groups. 
 
 # Running the Code: #
-To run the code, python must be installed. Assuming it is, the code can be run via a simple: `python Main.py` in the terminal window. The first thing the application will do is prompt the user for a mysql server running somewhere. Simply type the host address, username and password as directed and the application will connect to the MySQL server before creating the database (which we have called `budgetBook`) and populating it with the sample data we pulled from a kaggle dataset [1], albeit converted into a friendly format for insertion into our database. 
+To run the code, 2 things are required:
+* Python must be installed. 
+* The python MySQL connector must also be installed. It can be installed by running `python -m pip install mysql-connector`.
+Assuming the above two items are installed, the code can be run via a simple: `python Main.py` in the terminal window. The first thing the application will do is prompt the user for a mysql server running somewhere. Simply type the host address, username and password as directed and the application will connect to the MySQL server before creating the database (which we have called `budgetBook`) and populating it with the sample data we pulled from a kaggle dataset [1], albeit converted into a friendly format for insertion into our database. 
 
 **Note that the application will not re-create the database every time the application is run** - instead, the application will check if the database already exists, and if it doesn't, then it will create the database and populate it.
 
@@ -32,9 +35,10 @@ Upon successful login, the user is presented with the main menu. This includes 5
 The exact breakdown of every command in every menu is not included, but after entering each menu the commands themselves are self-explanatory.
 
 # Video Demo #
-The mp4 file of the video has been included in our submission but can also be viewed on YouTube at https://www.youtube.com/watch?v=deVcSJQr64E&feature=youtu.be (it was uploaded as unlisted). 
+The video demo can be viewed on YouTube at https://www.youtube.com/watch?v=deVcSJQr64E&feature=youtu.be (it was uploaded as unlisted). 
 
-**Note: I accidentally mispoke in the video and said you can't post if you aren't in a group - this is not true, it will just post to your profile and not actually within a group (groupID will be left as null).**
+**Note 1: I accidentally mispoke in the video and said you can't post if you aren't in a group - this is not true, it will just post to your profile and not actually within a group (groupID will be left as null).** This is what happens in the YouTube video when testuser1 posts.
+**Note 2: You do need to have the python mysql connector installed as well to successfully run the code, details are further up in the README (mispoke on the YouTube video).**
 
 # References #
 [1] https://www.kaggle.com/mchirico/cheltenham-s-facebook-group/version/46
