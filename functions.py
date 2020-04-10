@@ -83,7 +83,7 @@ def post(UserID, ParentPost, mycursor, mydb):  # Need to add some input error ch
 
 
 def read(PostID, UserID, mycursor, mydb, commentFlag):  # for reading posts AND comments
-    q = "SELECT PostID, firstName, lastName, PostTime, GroupName, Content, numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) INNER JOIN Popularity USING(PostID) WHERE PostID = %s;"
+    q = "SELECT PostID, firstName, lastName, PostTime, GroupName, Content, numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) LEFT JOIN GroupInfo USING(GroupID) FULL OUTER JOIN Popularity USING(PostID) WHERE PostID = %s;"
     v = (PostID,)
     mycursor.execute(q, v)
     rawResult = mycursor.fetchall()
@@ -141,7 +141,7 @@ def browsePostsInGroup(UserID, mycursor, mydb):
     print('\nWhich group would you like to read from?')
     groupIndex = 0
     for groupName in groupNames:
-        print(f"Type '{groupIndex}' (the group number) to browse in the group '{groupName}.'"); 
+        print(f"Type '{groupIndex}' (the group number) to browse in the group '{groupName}.'");
 
     groupIndexOkay = False
     while not groupIndexOkay:
@@ -296,11 +296,11 @@ def register(mycursor, mydb):
                 else:
                     print("Not a valid date.")
             dateJoined = str(date.today())
-            
+
             print('\nIs all of the following data that you entered okay?')
             print(f'userID: {userID}; firstName: {firstName}; lastName: {lastName}; birthDate: {birthDate};')
             dataOkay = input("\nIf the above is what you wanted, type 'Y'. Otherwise, hit any other key and the process will be restarted: ")
-            
+
             if dataOkay.upper() != 'Y':
                 continue
 
