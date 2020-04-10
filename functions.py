@@ -70,7 +70,10 @@ def post(UserID, ParentPost, mycursor, mydb):  # Need to add some input error ch
         v = (PostID,)
         mycursor.execute(q, v)
         result = mycursor.fetchall()
-    print("Your PostID is: "+str(PostID))
+        if ParentPost is None:
+            print("Your PostID is: "+str(PostID))
+        else:
+            print("Your CommentID is: "+str(PostID))
 
     # Post by adding all the information to the database
     q = "INSERT INTO Posts (PostID, UserID, ParentPost, GroupID, Content) VALUES (%s, %s, %s, %s, %s);"

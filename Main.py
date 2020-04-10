@@ -101,7 +101,7 @@ if successfullyConnected:
                 executing = False
                 break
             else:
-                print("That was not one of the options.")
+                print("That is not one of the options.")
 
         if loggedIn:
             while True:
@@ -175,6 +175,8 @@ if successfullyConnected:
                                             break
                                         else:
                                             PostID = PostIDStack.pop()
+                                    else:
+                                        print("That is not one of the options.")
 
                         elif action.upper() == 'G':
                             api.browsePostsInGroup(UserID, mycursor, mydb)
