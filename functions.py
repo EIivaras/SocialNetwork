@@ -182,6 +182,10 @@ def browsePostsInGroup(UserID, mycursor, mydb):
         mycursor.execute(q, v)
         numberOfPostsForGroup = mycursor.fetchall()[0][0]
 
+        if numberOfPostsForGroup == 0 or numberOfPostsForGroup == '0':
+            print('There are no posts for this group.')
+            continue
+
         wantsToRead = True
         while wantsToRead:
             postNumberOkay = False

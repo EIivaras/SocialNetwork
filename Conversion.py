@@ -96,7 +96,7 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
                         linkList.append(link)
                         linkObjects.append({'postID':postID, 'link':link})
 
-                insertStatement += f'("{postID}","{timeStamp}","{postText}","{userID}","{groupID}","","")'
+                insertStatement += f'("{postID}","{timeStamp}","{postText}","{userID}","{groupID}","")'
 
                 if index % 50 == 0:
                     insertStatement += ";\n"
@@ -137,11 +137,13 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
             else:
                 # This is not a comment on a comment
                 commentID = attributes[2] # The comment ID is just the comment ID
-                IDList.append(commentID)
                 parentPostID = attributes[1] # Parent post ID is the post itself
                 userID = attributes[4] # User ID is the original commenter ID
 
             if newIDNeeded or commentID not in IDList:
+                if not newIDNeeded:
+                    IDList.append(commentID)
+
                 # Extract Links and create inserts
                 links = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', commentText)
                 linkList = []
@@ -150,7 +152,7 @@ def SQLCreation(table, CSVFilePath, SQLFilePath, truncate):
                         linkList.append(link)
                         linkObjects.append({'postID':commentID, 'link':link})
 
-                insertStatement += f'("{commentID}","{timeStamp}","{commentText}","{userID}","{groupID}","","{parentPostID}")'
+                insertStatement += f'("{commentID}","{timeStamp}","{commentText}","{userID}","{groupID}","{parentPostID}")'
 
                 if index % 50 == 0:
                     insertStatement += ";\n"

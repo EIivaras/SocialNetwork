@@ -97,6 +97,7 @@ if successfullyConnected:
                 api.register(mycursor, mydb)
             elif loginOrRegister.upper() == 'E':
                 print("Goodbye.")
+                executing = False
                 break
             else:
                 print("That was not one of the options.")
