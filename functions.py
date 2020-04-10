@@ -256,7 +256,43 @@ def listUnreadPosts(UserID, numPosts, ParentPost, mycursor, mydb):  # for listin
     return 0
 
 
-def react(UserID, PostID, Reaction, commentFlag, mycursor, mydb):  # need to make it so that you don't get an error if you react to something you already reacted to
+def listComments(UserID, numPosts, ParentPost, mycursor, mydb):  # for listing comments (not specifically unread)
+    # select the top numPosts number of posts based on total number of reactions
+    q = "SELECT PostID, firstName, lastName, PostTime, SUBSTRING_INDEX(Content, \" \", 10), numUpvotes, numDownvotes FROM Posts INNER JOIN Users USING(UserID) INNER JOIN Popularity USING(PostID) WHERE ParentPost = %s ORDER BY Popularity.numReactions DESC LIMIT %s;"
+    v = (ParentPost, int(numPosts))
+    mycursor.execute(q, v)
+    result = mycursor.fetchall()
+
+    if len(result) == 0:
+        print("There are no comments on this post.")
+        return -1
+
+    for row in result:
+        Upvotes = 0 if row[5] is None else row[5]
+        Downvotes = 0 if row[6] is None else row[6]
+
+        Preview = row[4]+"..." if row[4].count(" ") == 9 else row[4]
+
+        q = "SELECT COUNT(*) FROM Posts WHERE ParentPost = %s"
+        v = (row[0],)
+        mycursor.execute(q, v)
+        Comments = mycursor.fetchall()[0][0]
+
+        print("CommentID: "+row[0]+" | Made by: "+row[1]+" "+row[2]+" | On: "+str(row[3])+"\n"+Preview+"\nUpvotes: "+str(Upvotes)+" | Downvotes: "+str(Downvotes)+" | Comments: "+str(Comments)+"\n")
+
+    return 0
+
+
+def react(UserID, PostID, Reaction, commentFlag, mycursor, mydb):
+    q = "SELECT * FROM Reactions WHERE UserID = %s AND PostID = %s;"
+    v = (UserID, PostID)
+    hasReacted = mycursor.execute(q, v)
+    if len(hasReacted) != 0:
+        if commentFlag > 0:
+            print("You have already reacted to this comment.")
+        else:
+            print("You have already reacted to this Post.")
+
     if Reaction.upper() == 'U':
         ReactValue = True
     elif Reaction.upper() == 'D':
@@ -265,7 +301,7 @@ def react(UserID, PostID, Reaction, commentFlag, mycursor, mydb):  # need to mak
         print("That is not a reaction option.\n")
         return -1
 
-    q = "INSERT INTO Reactions (UserID, PostID, Reaction) VALUES (%s, %s, %s);"  # this statement still untested and I am not sure about inputting the true and false values
+    q = "INSERT INTO Reactions (UserID, PostID, Reaction) VALUES (%s, %s, %s);"
     v = (UserID, PostID, ReactValue)
     mycursor.execute(q, v)
 
