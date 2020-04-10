@@ -247,16 +247,16 @@ def listUnreadPosts(UserID, numPosts, ParentPost, mycursor, mydb):  # for listin
 
         if ParentPost is None:
             if row[4] is None:
-                print("PostID: "+row[0]+" | Posted by: "+row[1]+" "+row[2]+" | On: "+str(row[3])+"\n"+Preview+"...\nUpvotes: "+str(Upvotes)+" | Downvotes: "+str(Downvotes)+" | Comments: "+str(Comments)+"\n")
+                print("PostID: "+row[0]+" | Posted by: "+row[1]+" "+row[2]+" | On: "+str(row[3])+"\n"+Preview+"\nUpvotes: "+str(Upvotes)+" | Downvotes: "+str(Downvotes)+" | Comments: "+str(Comments)+"\n")
             else:
-                print("PostID: "+row[0]+" | Posted by: "+row[1]+" "+row[2]+" | On: "+str(row[3])+" | In Group: "+row[4]+"\n"+Preview+"...\nUpvotes: "+str(Upvotes)+" | Downvotes: "+str(Downvotes)+" | Comments: "+str(Comments)+"\n")
+                print("PostID: "+row[0]+" | Posted by: "+row[1]+" "+row[2]+" | On: "+str(row[3])+" | In Group: "+row[4]+"\n"+Preview+"\nUpvotes: "+str(Upvotes)+" | Downvotes: "+str(Downvotes)+" | Comments: "+str(Comments)+"\n")
         else:
-            print("CommentID: "+row[0]+" | Made by: "+row[1]+" "+row[2]+" | On: "+str(row[3])+"\n"+Preview+"...\nUpvotes: "+str(Upvotes)+" | Downvotes: "+str(Downvotes)+" | Comments: "+str(Comments)+"\n")
+            print("CommentID: "+row[0]+" | Made by: "+row[1]+" "+row[2]+" | On: "+str(row[3])+"\n"+Preview+"\nUpvotes: "+str(Upvotes)+" | Downvotes: "+str(Downvotes)+" | Comments: "+str(Comments)+"\n")
 
     return 0
 
 
-def react(UserID, PostID, Reaction, commentFlag, mycursor, mydb):
+def react(UserID, PostID, Reaction, commentFlag, mycursor, mydb):  # need to make it so that you don't get an error if you react to something you already reacted to
     if Reaction.upper() == 'U':
         ReactValue = True
     elif Reaction.upper() == 'D':

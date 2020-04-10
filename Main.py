@@ -32,7 +32,8 @@ try:
     mydb = mysql.connector.connect(
         host=dbHost,
         user=dbUser,
-        passwd=dbPassword
+        passwd=dbPassword,
+        autocommit=True
     )
 except mysql.connector.Error as er:
     print("Error while attempting to connect to server: {}".format(er))
@@ -80,7 +81,7 @@ if successfullyConnected:
 
     executing = True
 
-    while executing: 
+    while executing:
 
         loggedIn = False
         UserID = ""
