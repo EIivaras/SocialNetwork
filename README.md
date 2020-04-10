@@ -19,10 +19,10 @@ If during the process of registration the user made a mistake in their inputted 
 Upon successful login, the user is presented with the main menu. This includes 4 commands:
 * P: Post Menu - Allows the user to create a post, read unread posts or read a post by ID.
 * F: Friend Menu - Allows the user to add a friend, unfollow a friend or refollow a friend.
-    * When a user adds a friend, that friend is automatically a followed, meaning that user's posts will appear in the user's unread posts list.
+    * When a user adds a friend, that friend is automatically followed, meaning that user's posts will appear in the user's unread posts list, if their new friend makes a new post.
     * Unfollowing a friend means the user will not will not see that friend's posts in their unread posts, but they will still be friends.
 * G: Group Menu - Allows the user to create or join a group.
-    * In facebook, which this database mocks, groups = topics. Whenever a user makes a post, they choose a group that they are in to post to.
+    * In facebook, which this database mocks, groups = topics. Whenever a user makes a post, they choose a group that they are in to post to. Users can also post on their own profile, and the post will not be associated with any group.
 * L: Logout
     * Allows the application user to switch budgetBook users.
 * E: Exit the Application
