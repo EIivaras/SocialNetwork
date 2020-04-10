@@ -286,7 +286,8 @@ def listComments(UserID, numPosts, ParentPost, mycursor, mydb):  # for listing c
 def react(UserID, PostID, Reaction, commentFlag, mycursor, mydb):
     q = "SELECT * FROM Reactions WHERE UserID = %s AND PostID = %s;"
     v = (UserID, PostID)
-    hasReacted = mycursor.execute(q, v)
+    mycursor.execute(q, v)
+    hasReacted = mycursor.fetchall()
     if len(hasReacted) != 0:
         if commentFlag > 0:
             print("You have already reacted to this comment.")
